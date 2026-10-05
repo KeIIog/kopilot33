@@ -317,7 +317,7 @@ import { setWebSettingByKey, setWebSettingsByKeys } from "./state.js";
       });
 
       // The button restores the whole layout for both orientations: 영역 1 전체
-      // (Area 1 full screen) with Area 1 = Carrot Vision and Area 2 = Carrot
+      // (Area 1 full screen) with Area 1 = KO Vision and Area 2 = Carrot
       // Navi. Mode and contents come from the spec's own constants so a stale
       // page cannot leave them as-is; the split ratio follows the injected
       // spec default when one is available.

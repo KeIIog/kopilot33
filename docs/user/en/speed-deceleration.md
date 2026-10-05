@@ -7,7 +7,7 @@
 
 This page explains all **23 speed and deceleration settings** in the current code: event targets, deceleration distance, stock-navigation CAN, road-limit adjustment, speed bumps, curve/route/model speed, and traffic-light stop adjustment.
 
-Change them in **Carrot Web → Settings → Driving control → Speed and deceleration**.
+Change them in **KO Web → Settings → Driving control → Speed and deceleration**.
 
 > [!CAUTION]
 > These settings can affect desired speed and the deceleration plan. Route, speed-limit, distance, and model inputs can be missing, late, or incorrect. The driver must always monitor the road and intervene immediately.
@@ -89,7 +89,7 @@ This experimental control is off by default. First verify that the displayed eve
 
 ### `VehicleSpeedCameraControlMode`
 
-This setting applies only to camera, average-speed-zone, and 30 km/h zone deceleration received over vehicle CAN. It does not affect camera information from Carrot Navi.
+This setting applies only to camera, average-speed-zone, and 30 km/h zone deceleration received over vehicle CAN. It does not affect camera information from KO Navi.
 
 | Value | Accelerator behavior |
 |---:|---|
@@ -342,7 +342,7 @@ Adjust by 100 (1 m) at a time under comparable no-lead signal stops, because the
 | Slowing with turn mode 0 | Future-model speed, applied-model speed, separate ATC |
 | Unwanted traffic-light stop/go | Detection mode, driving mode, model decision |
 
-Automatic CAN diagnostic logs are generated only when currently received vehicle or radar state from the present onroad session reports an actual error. CAN timeouts from the previous drive's shutdown are not used, and capture occurs five seconds after detection to include the immediate aftermath. When investigating a speed or deceleration issue, upload the affected drive from Carrot Web even if no automatic diagnostic log was generated.
+Automatic CAN diagnostic logs are generated only when currently received vehicle or radar state from the present onroad session reports an actual error. CAN timeouts from the previous drive's shutdown are not used, and capture occurs five seconds after detection to include the immediate aftermath. When investigating a speed or deceleration issue, upload the affected drive from KO Web even if no automatic diagnostic log was generated.
 
 ## Code references
 

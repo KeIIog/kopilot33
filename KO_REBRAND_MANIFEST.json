@@ -1,0 +1,14 @@
+{
+  "version": "v1.4",
+  "branch": "ko-rebrand",
+  "base": "ebb61cd0c9b93da8fe3b91f77e4b948efc6f4ecd",
+  "notes": [
+    "visible Carrot branding -> KO/KOPilot",
+    "sound 0% non-critical mute",
+    "KoPetMode hidden",
+    "KO door lock/unlock panel",
+    "YouTube road/driver camera unchanged",
+    "internal carrot identifiers preserved for compatibility",
+    "door commands require verified /data/ko/door_can.json"
+  ]
+}

@@ -100,19 +100,19 @@ function resetImages(notify = true) {
 }
 
 function reportError(error) {
-  self.postMessage({ type: "error", message: error?.message || String(error || "Carrot Navi decode error") });
+  self.postMessage({ type: "error", message: error?.message || String(error || "KO Navi decode error") });
 }
 
 function parseWire(buffer) {
   const bytes = new Uint8Array(buffer);
   if (bytes.byteLength < MEDIA_HEADER_BYTES || MEDIA_MAGIC.some((value, index) => bytes[index] !== value)) {
-    throw new Error("Invalid Carrot Navi media frame");
+    throw new Error("Invalid KO Navi media frame");
   }
   const view = new DataView(buffer);
-  if (view.getUint8(4) !== 1) throw new Error("Unsupported Carrot Navi media version");
+  if (view.getUint8(4) !== 1) throw new Error("Unsupported KO Navi media version");
   const headerLength = view.getUint32(5, false);
   const payloadOffset = MEDIA_HEADER_BYTES + headerLength;
-  if (headerLength <= 0 || payloadOffset > bytes.byteLength) throw new Error("Invalid Carrot Navi media header");
+  if (headerLength <= 0 || payloadOffset > bytes.byteLength) throw new Error("Invalid KO Navi media header");
   const headerBytes = bytes.subarray(MEDIA_HEADER_BYTES, payloadOffset);
   const metadata = JSON.parse(new TextDecoder().decode(headerBytes));
   return { metadata, payload: bytes.subarray(payloadOffset) };

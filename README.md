@@ -2,7 +2,7 @@
 
 [한국어](#한국어) · [English](#english) · [简体中文](#简体中文)
 
-[사용 설명서](https://g4iwnl.gitbook.io/carrotpilot) · [CarrotPilot Wiki](https://github.com/ajouatom/openpilot/wiki)
+[사용 설명서](https://g4iwnl.gitbook.io/carrotpilot) · [KOPilot Wiki](https://github.com/ajouatom/openpilot/wiki)
 
 ![carrotpilot](https://github.com/user-attachments/assets/4d80d256-7e66-4473-a289-04a50733b7e0)
 
@@ -101,8 +101,8 @@ carrotpilot은 개발 중인 운전자 보조 소프트웨어이며 인증된 �
 
 ### 문서
 
-- [CarrotPilot 사용 설명서](https://g4iwnl.gitbook.io/carrotpilot)
-- [CarrotPilot Wiki](https://github.com/ajouatom/openpilot/wiki)
+- [KOPilot 사용 설명서](https://g4iwnl.gitbook.io/carrotpilot)
+- [KOPilot Wiki](https://github.com/ajouatom/openpilot/wiki)
 
 carrotpilot의 공식 공개 안내는 위 사용 설명서와 Wiki를 중심으로 제공합니다. 먼저 해당 문서에서 차량별 요구 사항과 설정 설명을 확인하세요.
 
@@ -192,8 +192,8 @@ carrotpilot is driver-assistance software under active development, not a certif
 
 ### Documentation
 
-- [CarrotPilot Manual](https://g4iwnl.gitbook.io/carrotpilot)
-- [CarrotPilot Wiki](https://github.com/ajouatom/openpilot/wiki)
+- [KOPilot Manual](https://g4iwnl.gitbook.io/carrotpilot)
+- [KOPilot Wiki](https://github.com/ajouatom/openpilot/wiki)
 
 Official public guidance for carrotpilot is provided primarily through the manual and Wiki above. Check those documents first for vehicle requirements and setting descriptions.
 
@@ -283,8 +283,8 @@ carrotpilot 是一个正在开发中的驾驶辅助软件，而不是经认证�
 
 ### 文档
 
-- [CarrotPilot 使用说明书](https://g4iwnl.gitbook.io/carrotpilot)
-- [CarrotPilot Wiki](https://github.com/ajouatom/openpilot/wiki)
+- [KOPilot 使用说明书](https://g4iwnl.gitbook.io/carrotpilot)
+- [KOPilot Wiki](https://github.com/ajouatom/openpilot/wiki)
 
 carrotpilot 的官方公开说明主要以上述使用说明书和 Wiki 为主。请先查阅这些文档，确认车辆要求和设置说明。
 

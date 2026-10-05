@@ -97,7 +97,7 @@ python selfdrive/carrot/cluster_run.py --output usb --profile-render --profile-i
 ```
 
 `--input navi` is the standalone Windows/live-device navigation screen. It
-binds the Carrot WebSocket v2 receiver on TCP 7714, broadcasts its address on
+binds the KO WebSocket v2 receiver on TCP 7714, broadcasts its address on
 UDP 7705, decodes MAP MAIN H.264 in-process, and displays all current JSON/PNG
 surfaces in a dedicated 1920x480 layout. Use `--navi-advertise-ip 127.0.0.1`
 with `adb reverse tcp:7714 tcp:7714`, or omit it for automatic LAN discovery.
@@ -436,7 +436,7 @@ cruise set speed, and the LFA active icon. This top
 drive-status row uses the same top margin as the road speed-limit sign while
 bottom-aligning gear, gap, cruise set, and LFA elements to the measured
 bottom of the cruise-set text. The gap vehicle uses
-`selfdrive/assets/icons_mici/carrot_cruse_gap_trimmed.png` at its source aspect
+`selfdrive/assets/icons_mici/ko_cruise_gap.png` at its source aspect
 ratio and is taller than before while the gap bars keep their own size/spacing;
 all four gap bars stay visible, sit close together, and bottom-align to the
 vehicle while inactive bars are gray and active bars use `#bb3d91`. Cruise set
@@ -454,10 +454,10 @@ not force an auxiliary speed while cruise is off. The separate lane-change icon 
 not drawn. A vehicle-CAN source does not count as an external navigation
 session, so it does not replace the default driving-report panel; actual 7713/7714
 guidance still replaces that panel normally. The LFA icon uses
-`selfdrive/assets/icons_mici/carrot_wheel_org.png`, rotates by
+`selfdrive/assets/icons_mici/wheel.png`, rotates by
 `-carState.steeringAngleDeg`, and recolors its white pixels green when LFA is
 active. When `controlsState.activeLaneLine` is true, the fixed
-`carrot_wheel_lane.png` left/right lane overlay is drawn in the same position
+`ko_wheel_lane.png` left/right lane overlay is drawn in the same position
 and color contract as the C4 HUD.
 When `carState.evModeValid` and `carState.evModeActive` are both true, the HUD
 shows a compact green `EV` indicator between the vehicle speed and cruise-set
@@ -481,7 +481,7 @@ value is drawn inside its corresponding enlarged tire. It remains hidden only
 when all four pressure values are unavailable; individual missing values show
 `--`, and values below 31 psi are red. The surrounding area stays transparent. When
 legacy external navigation has a recent remote sender, or an alive and valid
-Carrot Navi v2 service reports `connected`, the orange `NAVI` status appears one
+KO Navi v2 service reports `connected`, the orange `NAVI` status appears one
 character-width left of the Wi-Fi center. It takes priority over vehicle
 navigation availability. Once Hyundai CAN-FD `0x4BE` has been observed during
 the drive, lavender `vNAVI` appears in the same status slot instead. This

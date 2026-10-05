@@ -28,7 +28,7 @@ test("experimental DM requires acknowledgement before a settings write", async (
   assert.equal(writes.length, 3);
 });
 
-test("Carrot Vision accepts typed booleans from Params and raw legacy values", () => {
+test("KO Vision accepts typed booleans from Params and raw legacy values", () => {
   const start = runtime.indexOf("function normalizeRuntimeBool(");
   const end = runtime.indexOf("let _carrotVisionEnvironmentSignature", start);
   const context = vm.createContext({ CARROT_DEVICE_RUNTIME_STATE: {}, window: {} });

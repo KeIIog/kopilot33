@@ -7,7 +7,7 @@
 
 ## Enabling and disabling monitoring
 
-`DriverMonitoringEnabled` is on by default and appears only through Carrot Web setting search. Search for `DriverMonitoringEnabled` to find it. The OFF option is intended for an absent or failed DM camera; leaving the default ON unchanged is recommended. With monitoring on, an unavailable camera automatically uses interaction monitoring. Turning the setting off stops use of the driver-monitoring model and policy during normal driving, including interaction monitoring, driver-monitoring alerts, monitoring-triggered force deceleration, and lockout. Driver View may still run the model solely for face preview, while alert, deceleration, and lockout enforcement remains neutral. It does not change the selected `DriverMonitoringMode` or the independent `CarrotVisionEnabled` road-video setting.
+`DriverMonitoringEnabled` is on by default and appears only through KO Web setting search. Search for `DriverMonitoringEnabled` to find it. The OFF option is intended for an absent or failed DM camera; leaving the default ON unchanged is recommended. With monitoring on, an unavailable camera automatically uses interaction monitoring. Turning the setting off stops use of the driver-monitoring model and policy during normal driving, including interaction monitoring, driver-monitoring alerts, monitoring-triggered force deceleration, and lockout. Driver View may still run the model solely for face preview, while alert, deceleration, and lockout enforcement remains neutral. It does not change the selected `DriverMonitoringMode` or the independent `CarrotVisionEnabled` road-video setting.
 
 File backups, QR backups, restores and setting profiles do not transfer `DriverMonitoringEnabled`. Restoring settings from another device therefore cannot turn monitoring off; a persistent OFF must be selected directly on the current device.
 
@@ -15,7 +15,7 @@ Regardless of gear or speed, including at standstill, three presses of the physi
 
 Echo filtering uses a short correlation window immediately after an automatic cancellation request and briefly suppresses its paired release. Hyundai/Kia/Genesis openpilot longitudinal control bypasses this filter because its internal cancellation level can stay high even though that path does not transmit a CANCEL button; the internal level therefore cannot hide the first physical press. On stock longitudinal control and other filtered paths, a physical CANCEL press interleaved with an actual echo may still be ignored, or the following press may need one extra release and press; this favors avoiding an unintended DM shutdown.
 
-The three-CANCEL gesture turns monitoring off only for the current ignition session and does not change the saved `DriverMonitoringEnabled` setting. The next ignition-on or manager/device restart clears only this temporary off state. Monitoring resumes under the saved `DriverMonitoringMode` if `DriverMonitoringEnabled` is ON. If you turned it OFF in Carrot Web, it remains OFF across drives and restarts until you manually turn that setting back ON.
+The three-CANCEL gesture turns monitoring off only for the current ignition session and does not change the saved `DriverMonitoringEnabled` setting. The next ignition-on or manager/device restart clears only this temporary off state. Monitoring resumes under the saved `DriverMonitoringMode` if `DriverMonitoringEnabled` is ON. If you turned it OFF in KO Web, it remains OFF across drives and restarts until you manually turn that setting back ON.
 
 ## Four operating cases
 
@@ -85,7 +85,7 @@ While driver monitoring is on, ordinary input, forward attention, and context ch
 
 The vehicle must report zero raw speed, standstill and Park together; only a tiny settling residue in filtered speed is allowed. Zero speed in Drive, Neutral or Reverse, engagement OFF/ON alone, stale or invalid signals, and driver-camera preview cannot release the restriction. Vehicles that do not report Park cannot use this release condition.
 
-`CarrotVisionEnabled` independently controls web road video. Only the video function of old `DisableDM=2` is migrated once; monitoring starts in standard mode. Carrot Vision is unavailable while the USB cluster is enabled.
+`CarrotVisionEnabled` independently controls web road video. Only the video function of old `DisableDM=2` is migrated once; monitoring starts in standard mode. KO Vision is unavailable while the USB cluster is enabled.
 
 ## Onroad DM display and warning sounds
 

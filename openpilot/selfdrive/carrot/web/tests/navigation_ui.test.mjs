@@ -15,7 +15,7 @@ function navigationItems() {
   return WEB_SETTINGS_GROUPS.find((group) => group.id === "navigation")?.items || [];
 }
 
-test("Carrot Navi settings expose tap fullscreen and every supported map theme", () => {
+test("KO Navi settings expose tap fullscreen and every supported map theme", () => {
   const items = navigationItems();
   assert.ok(items.some((item) => item.id === "carrot_navi_fullscreen_on_tap"));
 
@@ -32,7 +32,7 @@ test("current maneuver prefers the full native card and uses compact only as fal
   assert.equal(selectFrom(), "");
 });
 
-test("Carrot Navi fullscreen remains user-gesture driven and follows workspace lifecycle", () => {
+test("KO Navi fullscreen remains user-gesture driven and follows workspace lifecycle", () => {
   assert.match(appRealtimeSource, /getElementById\("carrotNaviPane"\)/);
   assert.match(appRealtimeSource, /pane\.addEventListener\("click"/);
   assert.match(appRealtimeSource, /carrot_navi_fullscreen_on_tap/);

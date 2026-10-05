@@ -31,7 +31,7 @@ export function mat3Vector(m, v) {
 }
 
 /**
- * 기존 Carrot Vision이 제공한 calibrated FRD transform으로 영상에 투영한다.
+ * 기존 KO Vision이 제공한 calibrated FRD transform으로 영상에 투영한다.
  * AR은 sensor/profile/calibration을 다시 만들지 않고 stage snapshot만 소비한다.
  */
 export function projectPoint(transform, x, y, z) {

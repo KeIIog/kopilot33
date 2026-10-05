@@ -168,7 +168,7 @@ test("the item context label appends the section when it adds information", () =
 
 test("search entries cover catalog items and profile items with a lowercase haystack", () => {
   const model = createModel();
-  const entries = model.buildSearchEntries({ carrot: "당근파일럿", profile: "프로필" });
+  const entries = model.buildSearchEntries({ carrot: "KOPilot", profile: "프로필" });
 
   assert.equal(entries.length, 7, "detail children and search-only controls are indexed");
   const carrot = entries.find((entry) => entry.source === "carrot" && entry.name === "ApplyModelSpeed");

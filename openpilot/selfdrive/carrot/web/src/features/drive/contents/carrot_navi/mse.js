@@ -57,7 +57,7 @@ export function createMse(video, options = {}) {
     const videoError = video.error;
     errorMessage = String(error?.message
       || videoError?.message
-      || (videoError?.code ? `HTMLMediaElement error ${videoError.code}` : error || "Carrot Navi MSE playback error"));
+      || (videoError?.code ? `HTMLMediaElement error ${videoError.code}` : error || "KO Navi MSE playback error"));
     options.onError?.(errorMessage);
   }
 
@@ -164,7 +164,7 @@ export function createMse(video, options = {}) {
     const mime = String(mimeValue || DEFAULT_MIME);
     const Constructor = constructorFor(mime, target);
     if (!Constructor) {
-      reportError(new Error(`Unsupported Carrot Navi media type: ${mime || "unknown"}`));
+      reportError(new Error(`Unsupported KO Navi media type: ${mime || "unknown"}`));
       return false;
     }
     const source = new Constructor();
@@ -201,7 +201,7 @@ export function createMse(video, options = {}) {
       waitingForKeyframe = false;
     }
     if (queue.length >= MAX_QUEUE) {
-      errorMessage = "Carrot Navi MSE queue overflow";
+      errorMessage = "KO Navi MSE queue overflow";
       queue = queue.filter((item) => !item.media);
       waitingForKeyframe = !keyframe;
       if (waitingForKeyframe) return false;

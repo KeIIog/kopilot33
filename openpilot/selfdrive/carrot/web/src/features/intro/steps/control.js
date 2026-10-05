@@ -11,7 +11,7 @@
  * interface.py:40 에서 카메라 CAN 버스가 1번으로 고정되며,
  * carstate.py:228 에서 SCC11~14 를 메인 버스가 아닌 **카메라 버스**로 읽는다.
  *
- * 그리고 여기가 당근파일럿 고유 부분 — interface.py:179 의 `# carrot` 주석:
+ * 그리고 여기가 KOPilot 고유 부분 — interface.py:179 의 `# carrot` 주석:
  *
  *     ret.openpilotLongitudinalControl = alpha_long and ret.alphaLongitudinalAvailable
  *     # carrot, if camera_scc enabled, enable openpilotLongitudinalControl
@@ -20,8 +20,8 @@
  *       ret.openpilotLongitudinalControl = True if camera_scc < 3 else False
  *
  * 순정 openpilot 은 alpha_long(실험적 롱컨)이 켜져야만 롱컨을 한다.
- * 당근파일럿은 CAMERA_SCC 가 켜지면 그 게이트를 무시하고 롱컨을 강제로 켠다.
- * → "전방 카메라 배선만으로 롱컨" 이 당근파일럿 전용 기능인 이유.
+ * KOPilot은 CAMERA_SCC 가 켜지면 그 게이트를 무시하고 롱컨을 강제로 켠다.
+ * → "전방 카메라 배선만으로 롱컨" 이 KOPilot 전용 기능인 이유.
  *
  * ③ 순정은 HyundaiCameraSCC=0 이라 위 분기를 안 타므로
  *    openpilotLongitudinalControl 은 꺼진 채고(interface.py:192 pcmCruise=True),

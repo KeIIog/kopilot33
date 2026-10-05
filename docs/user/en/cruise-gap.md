@@ -7,7 +7,7 @@
 
 This page explains all **31 cruise and following-gap settings** from the current implementation, including where each value enters the calculation and the direction of adjustment.
 
-Change them in **Carrot Web → Settings → Driving control → Cruise and following gap**.
+Change them in **KO Web → Settings → Driving control → Cruise and following gap**.
 
 > [!CAUTION]
 > These are not recommended values for a particular car. Some settings do not apply when openpilot is not controlling acceleration and braking, and vehicle controllers or safety limits can restrict their effect. Back up the current profile and settings file, then change one item at a time.
@@ -20,7 +20,7 @@ Change them in **Carrot Web → Settings → Driving control → Cruise and foll
 4. [Longitudinal tuning](#longitudinal-tuning)
 5. [Following gap](#following-gap)
 6. [Following responsiveness](#lead-response)
-7. [Carrot cruise](#carrot-cruise)
+7. [KO cruise](#carrot-cruise)
 
 ## Order in which settings act
 
@@ -30,7 +30,7 @@ Change them in **Carrot Web → Settings → Driving control → Cruise and foll
 | 2 | Following gap, lead response | Predicted lead motion and target distance |
 | 3 | Stop/restart | Stop target and stopping/starting state transitions |
 | 4 | Longitudinal tuning | Make the vehicle follow planned speed and acceleration |
-| 5 | Carrot cruise | Separately adjust final deceleration on supported Hyundai/Kia controllers |
+| 5 | KO cruise | Separately adjust final deceleration on supported Hyundai/Kia controllers |
 
 The same symptom can therefore have different causes. A slow launch might come from the low-speed acceleration table, start acceleration-change cost, PID gains, or a vehicle limit.
 
@@ -333,7 +333,7 @@ Lead response uses the final level after the mode cap. A selected 5 uses level 3
 4. Restore the previous value if surging or unintended acceleration appears.
 
 <a id="carrot-cruise"></a>
-## 7. Carrot cruise
+## 7. KO cruise
 
 ### `CruiseEcoControl`
 
@@ -353,7 +353,7 @@ Relaxes cruise braking that would bring a small overspeed back to the set speed.
 - Navigation or other speed caps at or below the coasting ceiling prevent relief. External deceleration, pedal input, target changes, or invalid inputs give priority to normal control.
 - Does not apply while `CruiseEcoControl` raises the target or the existing CarrotCruise acceleration-limiting mode is active. This setting is separate from `CarrotCruiseDecel`.
 
-Adjust under Settings > Driving > Cruise & Gap > Carrot Cruise. Changes are read approximately once per second while running. Increase the margin to allow more overspeed before normal braking returns, or select 0% to restore existing control.
+Adjust under Settings > Driving > Cruise & Gap > KO Cruise. Changes are read approximately once per second while running. Increase the margin to allow more overspeed before normal braking returns, or select 0% to restore existing control.
 
 A zero SCC acceleration request does not guarantee zero regeneration or braking. Actual regeneration and ride comfort depend on the vehicle; driving validation has not yet been completed.
 
@@ -361,7 +361,7 @@ A zero SCC acceleration request does not guarantee zero regeneration or braking.
 
 These are currently implemented only in the **Hyundai/Kia controller** and require all of the following:
 
-- Carrot cruise state active
+- KO cruise state active
 - No driver accelerator override
 - Not in soft-hold or stopping state
 - Speed above 10 km/h
@@ -380,7 +380,7 @@ Range -1–200, step 10. Non-negative values are scaled by `0.01 m/s²`.
 | `100` | Require at least about -1.00 m/s² |
 | `200` | Require at least about -2.00 m/s² |
 
-For a positive value, the stronger deceleration of the planner command and override is selected. Command change is rate-limited to about 1.0 m/s² per second. The `-1` description can look like a global cruise-off option, but it is specifically a coasting path inside Carrot cruise conditions. If both planned and requested values are already below about -0.1 m/s², normal planning remains active.
+For a positive value, the stronger deceleration of the planner command and override is selected. Command change is rate-limited to about 1.0 m/s² per second. The `-1` description can look like a global cruise-off option, but it is specifically a coasting path inside KO cruise conditions. If both planned and requested values are already below about -0.1 m/s², normal planning remains active.
 
 ### `CarrotCruiseAtcDecel`
 
@@ -405,7 +405,7 @@ ATC distance is carried by the internal `carrotMan` service message. That is an 
 5. Repeat under similar speed, gap personality, and lead conditions.
 6. Restore the saved profile when the result is worse or unclear.
 
-Related: [Understanding Settings](settings.md) · [Tuning introduction](https://github.com/ajouatom/openpilot/wiki/Guide-Tuning) · [Carrot Web](https://github.com/ajouatom/openpilot/wiki/Guide-Carrot-Web)
+Related: [Understanding Settings](settings.md) · [Tuning introduction](https://github.com/ajouatom/openpilot/wiki/Guide-Tuning) · [KO Web](https://github.com/ajouatom/openpilot/wiki/Guide-Carrot-Web)
 
 ## Code references
 

@@ -62,7 +62,7 @@ window.HomeDrive = (() => {
   const stageOwnershipSurface = stateSurfaceApi?.create?.({
     host: stageLoadingEl,
     className: "carrot-stage__ownershipNotice",
-    featureLabel: () => getUIText("web_drive_layout_content_vision", "Carrot Vision"),
+    featureLabel: () => getUIText("web_drive_layout_content_vision", "KO Vision"),
   });
   const visionHudContent = window.DriveVisionHudContent;
   const driveHudCardEl = visionHudContent?.root || null;
@@ -153,7 +153,7 @@ window.HomeDrive = (() => {
   const MOBILE_DPR_CAP = 1.25;
   const DESKTOP_DPR_CAP = 1.5;
   const PERFORMANCE_RENDER_DPR_CAP = 3.0;
-  /* Carrot Vision motion policy — keep this in mind for any future overlay work.
+  /* KO Vision motion policy — keep this in mind for any future overlay work.
    *
    * The overlay must feel continuous with the video, not merely correct. Three
    * rules produced the current behaviour and breaking any one of them brings

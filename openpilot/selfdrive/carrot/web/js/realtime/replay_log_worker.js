@@ -677,7 +677,7 @@ class ReplayLogBuilder {
     const events = [];
     for (const serviceBuckets of this.selected.values()) events.push(...serviceBuckets.values());
     events.sort((left, right) => left.logMonoTime - right.logMonoTime);
-    if (!indexes.length && !events.length) throw new Error("Recorded log has no Carrot Vision display data");
+    if (!indexes.length && !events.length) throw new Error("Recorded log has no KO Vision display data");
 
     const baseMonoTime = indexes[0]?.logMonoTime || events[0].logMonoTime;
     const timestampBase = indexes[0]?.timestampSof || 0;

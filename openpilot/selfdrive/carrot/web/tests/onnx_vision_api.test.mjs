@@ -20,7 +20,7 @@ function jsonResponse(payload = {}, { ok = true, status = 200, statusText = "OK"
   };
 }
 
-test("ONNX API keeps status, config, and settings on the Carrot Web origin", async () => {
+test("ONNX API keeps status, config, and settings on the KO Web origin", async () => {
   const calls = [];
   const target = {
     async fetch(url, options) {

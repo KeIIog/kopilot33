@@ -29,7 +29,7 @@ test("default route summary path is browser-worker based", () => {
   assert.match(build, /route_summary_worker\.js/);
 });
 
-test("route summary presentation uses Carrot Web tokens without a local palette", () => {
+test("route summary presentation uses KO Web tokens without a local palette", () => {
   const presentation = `${sources["tokens.css"]}\n${sources["style.css"]}\n${sources["components.js"]}`;
   assert.doesNotMatch(presentation, /#[0-9a-f]{3,8}\b|rgba?\(/i);
   assert.match(presentation, /var\(--md-primary\)/);

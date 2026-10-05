@@ -1,4 +1,4 @@
-/* Carrot Vision AR 오버레이 — 공개 파사드.
+/* KO Vision AR 오버레이 — 공개 파사드.
  *
  * 이 폴더의 공개 표면은 여기 하나다. 다른 기능은 내부 모듈을 직접 import 하지
  * 않는다(drive_insights 와 같은 규칙).

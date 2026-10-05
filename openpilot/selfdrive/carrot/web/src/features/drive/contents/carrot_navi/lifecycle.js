@@ -21,7 +21,7 @@ export function createLifecycle(options = {}) {
 
   function transition(nextValue, nextReason = "") {
     const next = String(nextValue || "");
-    if (!PHASE_SET.has(next)) throw new Error(`Invalid Carrot Navi phase: ${next}`);
+    if (!PHASE_SET.has(next)) throw new Error(`Invalid KO Navi phase: ${next}`);
     const normalizedReason = String(nextReason || "").slice(0, 128);
     if (phase === next && reason === normalizedReason) return false;
     const previous = phase;

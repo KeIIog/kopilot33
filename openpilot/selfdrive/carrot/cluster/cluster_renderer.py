@@ -111,9 +111,9 @@ TPMS_CAR_ICON_PATH = CLUSTER_DIR / "assets" / "images" / "tpms_toy_car.png"
 SPEED_BG_PATH = SELFDRIVE_DIR / "assets" / "images" / "speed_bg.png"
 TRAFFIC_RED_ICON_PATH = SELFDRIVE_DIR / "assets" / "images" / "traffic_red.png"
 TRAFFIC_GREEN_ICON_PATH = SELFDRIVE_DIR / "assets" / "images" / "traffic_green.png"
-FOLLOW_VEHICLE_ICON_PATH = SELFDRIVE_DIR / "assets" / "icons_mici" / "carrot_cruse_gap_trimmed.png"
-LFA_ICON_PATH = SELFDRIVE_DIR / "assets" / "icons_mici" / "carrot_wheel_org.png"
-LFA_LANE_ICON_PATH = SELFDRIVE_DIR / "assets" / "icons_mici" / "carrot_wheel_lane.png"
+FOLLOW_VEHICLE_ICON_PATH = SELFDRIVE_DIR / "assets" / "icons_mici" / "ko_cruise_gap.png"
+LFA_ICON_PATH = SELFDRIVE_DIR / "assets" / "icons_mici" / "wheel.png"
+LFA_LANE_ICON_PATH = SELFDRIVE_DIR / "assets" / "icons_mici" / "ko_wheel_lane.png"
 WIFI_ICON_PATH = SELFDRIVE_DIR / "assets" / "icons_mici" / "settings" / "network" / "wifi_strength_full.png"
 ROUTE_CONTROL_PANEL_X = 340.0
 ROUTE_CONTROL_PANEL_Y = DESIGN_HEIGHT - 74.0
@@ -902,7 +902,7 @@ class ClusterUiRenderer:
         self,
         width: int = DESIGN_WIDTH,
         height: int = DESIGN_HEIGHT,
-        title: str = "carrotpilot cluster",
+        title: str = "KOPilot cluster",
         target_fps: int = 0,
         theme_mode: str = "auto",
         screen_mode: int = 0,

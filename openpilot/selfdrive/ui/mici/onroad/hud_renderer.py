@@ -197,11 +197,11 @@ class HudRenderer(Widget):
     # self._torque_bar = TorqueBar() # 아이콘에 토크 적용: 토크바 미사용
     self._torque_filter = FirstOrderFilter(0, 0.1, 1 / gui_app.target_fps) # 아이콘에 토크 적용: LowPassFilter
 
-    # 휠 당근 휠로 변경
-    self._txt_wheel: rl.Texture = gui_app.texture('icons_mici/carrot_wheel.png', 50, 50) # 당근 휠
-    self._txt_wheel_critical: rl.Texture = gui_app.texture('icons_mici/carrot_wheel_critical.png', 50, 50) # 당근 휠 위험
-    self._txt_wheel_lane: rl.Texture = gui_app.texture('icons_mici/carrot_wheel_lane.png', 100, 50) # 당근 레인모드
-    self._txt_wheel_cap: rl.Texture = gui_app.texture('icons_mici/carrot_wheel_cap.png', 50, 50) # 당근 휠 중앙 당근맨
+    # 휠 KO 휠로 변경
+    self._txt_wheel: rl.Texture = gui_app.texture('icons_mici/wheel.png', 50, 50) # KO 휠
+    self._txt_wheel_critical: rl.Texture = gui_app.texture('icons_mici/wheel_critical.png', 50, 50) # KO 휠 위험
+    self._txt_wheel_lane: rl.Texture = gui_app.texture('icons_mici/ko_wheel_lane.png', 100, 50) # KO 레인모드
+    self._txt_wheel_cap: rl.Texture = gui_app.texture('icons_mici/wheel.png', 50, 50) # KO 휠 중앙 KO
 
     self._txt_exclamation_point: rl.Texture = gui_app.texture('icons_mici/exclamation_point.png', 44, 44)
 
@@ -451,7 +451,7 @@ class HudRenderer(Widget):
       wheel_color = rl.Color(230, 230, 230, int(self._wheel_alpha_filter.x))
 
     rl.draw_texture_pro(wheel_txt, src_rect, dest_rect, origin, rotation, wheel_color)
-    # 당근맨은 틴팅 없이 덧대서 그리기
+    # KO은 틴팅 없이 덧대서 그리기
     rl.draw_texture_pro(self._txt_wheel_cap, src_rect, dest_rect, origin, rotation, rl.WHITE)
 
     if self._show_wheel_critical:

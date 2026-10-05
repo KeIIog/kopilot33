@@ -4,8 +4,8 @@
 // same files keeps the cluster and web HUD visually identical without copies.
 const ROOT = "/shared-assets";
 
-const CARROT_URI = `${ROOT}/icons_mici/carrot_wheel_org.png`;
-const LFA_LANE_URI = `${ROOT}/icons_mici/carrot_wheel_lane.png`;
+const CARROT_URI = `${ROOT}/icons_mici/wheel.png`;
+const LFA_LANE_URI = `${ROOT}/icons_mici/ko_wheel_lane.png`;
 const WIFI_URI = `${ROOT}/icons_mici/settings/network/wifi_strength_full.png`;
 const SPEED_BG_URI = `${ROOT}/images/speed_bg.png`;
 const TRAFFIC_RED_URI = `${ROOT}/images/traffic_red.png`;

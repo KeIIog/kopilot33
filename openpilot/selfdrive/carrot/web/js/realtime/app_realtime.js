@@ -665,7 +665,7 @@ function startCarrotVisionTestStateFetch() {
 }
 
 setCarrotVisionAvailable(false, {
-  disabledMessage: getUIText("vision_unavailable_hint", "Enable Carrot Vision in settings."),
+  disabledMessage: getUIText("vision_unavailable_hint", "Enable KO Vision in settings."),
   reason: "init",
   updateRtcStatus: false,
   render: false,
@@ -702,7 +702,7 @@ function updateCarrotVisionAvailabilityUi(available, message = window.CARROT_VIS
   const wasActive = isCarrotVisionActive();
   const button = document.getElementById("btnStartVision");
   const messageEl = document.getElementById("visionDisabledMessage");
-  const defaultUnavailableHint = getUIText("vision_unavailable_hint", "Enable Carrot Vision in settings.");
+  const defaultUnavailableHint = getUIText("vision_unavailable_hint", "Enable KO Vision in settings.");
   const disabledMessage = nextAvailable ? "" : (message || defaultUnavailableHint);
   const unavailableHint = disabledMessage || defaultUnavailableHint;
   setCarrotVisionAvailable(nextAvailable, {
@@ -779,7 +779,7 @@ async function syncCarrotVisionAvailability() {
       updateCarrotVisionAvailabilityUi(true);
       return true;
     }
-    updateCarrotVisionAvailabilityUi(false, getUIText("carrot_vision_enabled_check_failed", "Could not check the Carrot Vision setting."));
+    updateCarrotVisionAvailabilityUi(false, getUIText("carrot_vision_enabled_check_failed", "Could not check the KO Vision setting."));
     return false;
   }
 }
@@ -1055,7 +1055,7 @@ function getCarrotVisionLifecycleController() {
   const controllerApi = window.DriveVisionLifecycleController;
   const policy = window.DriveVisionSessionPolicy;
   if (!controllerApi?.create || !policy?.effect) {
-    throw new Error("Carrot Vision lifecycle controller is unavailable");
+    throw new Error("KO Vision lifecycle controller is unavailable");
   }
 
   _carrotVisionLifecycleController = controllerApi.create({
@@ -1103,7 +1103,7 @@ async function probeCarrotVisionServer({ signal } = {}) {
     credentials: "same-origin",
     signal,
   });
-  // Any HTTP response proves that the current local Carrot Web origin is
+  // Any HTTP response proves that the current local KO Web origin is
   // reachable. WebRTC negotiation owns service-level HTTP error handling.
   return { ok: true };
 }
@@ -1130,7 +1130,7 @@ function getCarrotVisionNetworkRecoveryController() {
   const recoveryApi = window.DriveVisionNetworkRecovery;
   const policy = window.DriveVisionSessionPolicy;
   if (!recoveryApi?.create || !policy?.network) {
-    throw new Error("Carrot Vision network recovery controller is unavailable");
+    throw new Error("KO Vision network recovery controller is unavailable");
   }
 
   _carrotVisionNetworkRecoveryController = recoveryApi.create({

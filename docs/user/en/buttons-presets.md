@@ -7,7 +7,7 @@
 
 This page explains all **15 button and preset settings** from the current implementation, including short/long presses, custom cruise modes, and the conditions under which stock-SCC button messages are sent.
 
-Change these values in **Carrot Web → Settings → Driving control → Buttons and presets**.
+Change these values in **KO Web → Settings → Driving control → Buttons and presets**.
 
 > [!CAUTION]
 > Button events and stock-SCC messages differ by vehicle. Record the current values and confirm button recognition while safely parked. During a driving test, change only one item and restore normal mode immediately if the result is unexpected.
@@ -29,7 +29,7 @@ Change these values in **Carrot Web → Settings → Driving control → Buttons
 
 ### Why initial values may differ
 
-Carrot Web restores an individual item using the `default` in `carrot_settings.json`, while newly created Params use `params_keys.h` initial values. This branch currently has these differences:
+KO Web restores an individual item using the `default` in `carrot_settings.json`, while newly created Params use `params_keys.h` initial values. This branch currently has these differences:
 
 | Parameter | Catalog default | Initial Params value |
 |---|---:|---:|
@@ -57,7 +57,7 @@ Manual engagement with openpilot longitudinal control is still requested when th
 |---:|---|---|
 | `0` normal | Next `CruiseSpeedUnitBasic` grid point | Previous `CruiseSpeedUnitBasic` grid point |
 | `1` custom 1 | Set 30 below 30 km/h, then next `CruiseSpeedUnit` point | Previous `CruiseSpeedUnit` point |
-| `2` custom 2 | Same as custom 1 | Match current speed or, under some conditions, enter Carrot cruise |
+| `2` custom 2 | Same as custom 1 | Match current speed or, under some conditions, enter KO cruise |
 | `3` custom 3 | First larger value from `CruiseSpeed1` through `5` | Same as custom 2 |
 
 For custom modes 1–3, RES/+ first raises a set speed below 30 km/h to 30. It then searches the grid beginning at 40 km/h with `CruiseSpeedUnit` spacing. Custom mode 3 uses the five presets first and continues on the grid only after the final preset.
@@ -66,7 +66,7 @@ SET/- in custom modes 2 and 3 is not a simple subtraction:
 
 - If actual speed is sufficiently above set speed, the set speed can move toward actual speed.
 - If actual speed is below set speed, the set speed can be lowered to actual speed.
-- If no lower-speed condition applies, the state can enter Carrot cruise.
+- If no lower-speed condition applies, the state can enter KO cruise.
 
 Use `CruiseButtonMode=0` first if you want predictable grid-based `+/-` behavior.
 
@@ -85,7 +85,7 @@ A **long cancel press always disengages lateral control**, regardless of this mo
 |---:|---|
 | `0` normal | Toggle lateral control |
 | `1` decelerate-to-stop and ready | Enable the automatic-deceleration/ready flow |
-| `2` Carrot cruise | Activate Carrot cruise |
+| `2` KO cruise | Activate KO cruise |
 
 Mode `1` does not immediately command a fixed deceleration. It enables an internal paddle-deceleration waiting state; subsequent stop, lead, and cruise states determine Ready and reactivation behavior. Treat it as experimental because the current code still marks this flow for further work.
 
@@ -98,7 +98,7 @@ A **long LFA press** temporarily toggles the speed condition used by lane mode, 
 | `0` | No separate paddle action |
 | `1` | Cruise off, then Ready |
 | `2` | Cruise off, then Ready plus automatic-deceleration state |
-| `3` | Activate Carrot cruise |
+| `3` | Activate KO cruise |
 
 > [!IMPORTANT]
 > The catalog description says `0: cruise ON`, but the running code enters the paddle branch only when `PaddleMode > 0`. On this branch, interpret `0` as **paddle function disabled**.
@@ -202,7 +202,7 @@ Remember that SET/- in custom mode 3 does not walk backward through the preset t
 | A short press changes speed by more than expected | `CruiseButtonMode`, both speed units |
 | Long-press unit differs from the setting | Current code uses a fixed 10 km/h grid |
 | Custom mode 3 skips steps | Ascending order and duplicates in presets 1–5 |
-| SET/- enters Carrot cruise | This can be normal in custom modes 2 and 3 |
+| SET/- enters KO cruise | This can be normal in custom modes 2 and 3 |
 | LFA or paddle does not respond | Whether the vehicle reports that button event |
 | Reset produces a surprising value | Difference between catalog default and initial Params value |
 

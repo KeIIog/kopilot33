@@ -1,6 +1,6 @@
 # Wiki 설정 설명 규격
 
-이 디렉터리는 GitHub Wiki에서 작성한 설정별 설명을 검증하고 Carrot Web에 표시하기 위한 규격 원본이다. 대화 세션이나 Wiki 안내 페이지는 규격 원본이 아니다.
+이 디렉터리는 GitHub Wiki에서 작성한 설정별 설명을 검증하고 KO Web에 표시하기 위한 규격 원본이다. 대화 세션이나 Wiki 안내 페이지는 규격 원본이 아니다.
 
 ## 책임 분리
 
@@ -9,7 +9,7 @@
 | `openpilot/selfdrive/carrot_settings.json` | 현재 설정 목록과 기본값·범위·단위·선택지 |
 | `docs/user/ko`, `docs/user/en` | 공개 장문 사용자 가이드 |
 | GitHub Wiki | 설정별 짧은 설명의 작성 공간 |
-| GitHub Wiki 자동 영역 | 검증을 통과한 Carrot Web 조회 원본 |
+| GitHub Wiki 자동 영역 | 검증을 통과한 KO Web 조회 원본 |
 | 이 디렉터리 | 작성·구조·렌더링·검증 규격 |
 
 Wiki의 설정별 설명은 장문 가이드를 복사하지 않는다. 필요한 경우 `docs/user`의 관련 가이드로 연결한다.
@@ -17,7 +17,7 @@ Wiki의 설정별 설명은 장문 가이드를 복사하지 않는다. 필요�
 ## 파일
 
 - `AUTHORING_GUIDE.md`: 사람이 따르는 Wiki 작성 규칙
-- `RENDERING_CONTRACT.md`: Wiki와 Carrot Web의 의미·컴포넌트 대응 규칙
+- `RENDERING_CONTRACT.md`: Wiki와 KO Web의 의미·컴포넌트 대응 규칙
 - `content.schema.json`: 동기화 콘텐츠의 기계 검증 규격
 - `generate.py`: 설정마다 언어별 독립 Wiki 페이지와 해시 인덱스를 만드는 생성기
 - `ci_check.py`: 생성 결과를 검증하고 PR용 요약·Diff Artifact를 만드는 읽기 전용 검사기
@@ -30,14 +30,14 @@ Wiki의 설정별 설명은 장문 가이드를 복사하지 않는다. 필요�
 - 현재 규격 버전은 `1`이다.
 - 문서 생성과 삭제는 `carrot-wip`의 현재 설정 목록만 기준으로 한다.
 - `carrot-wip`에서 삭제된 설정은 Wiki 생성 결과·인덱스에서 삭제하며 별도 보관하지 않는다.
-- 설정별 파일명·페이지 제목·목록과 메뉴 계층은 Carrot Web이 각 언어에서 실제로
+- 설정별 파일명·페이지 제목·목록과 메뉴 계층은 KO Web이 각 언어에서 실제로
   표시하는 `title`, `etitle`, `ctitle`과 `menu` 구조를 기준으로 한다.
 - 기존 수동 Wiki 문서는 수정하지 않는다. `_Sidebar.md`에는 기존 구조를 유지한 채
-  `사용 설명서 > 설정 이해하기 > 전체 설정` 아래에 Carrot Web과 같은 순서의
+  `사용 설명서 > 설정 이해하기 > 전체 설정` 아래에 KO Web과 같은 순서의
   한국어 메뉴 계층과 설정 링크를 생성기가 관리한다.
 - 로케일 제목이 바뀌면 파라미터를 기준으로 페이지를 이동하고 `MANUAL` 영역을
   보존한다. 같은 이름의 비관리 Wiki 페이지가 있으면 덮어쓰지 않고 실패한다.
-- Wiki 편집은 자유롭게 할 수 있지만 Carrot Web에는 생성·검증된 자동 영역만 표시한다.
+- Wiki 편집은 자유롭게 할 수 있지만 KO Web에는 생성·검증된 자동 영역만 표시한다.
 - 한국어와 영어는 필수이며 중국어 상세 설명이 없으면 영어로 대체한다.
 - `contentHash`는 `source.contentHash` 필드를 제외한 정규화 콘텐츠의 SHA-256 값이다.
 
@@ -66,14 +66,14 @@ python -m unittest discover -s tools/docs/wiki_settings/tests -p "test_*.py" -v
 
 `.github/workflows/wiki-settings-publish.yaml`은 GitHub Actions에서 `cp-set-wiki`로 표시된다. `carrot-wip` 설정 변경, Wiki `gollum`, 수동 실행에서만 동작하며, 신뢰된 기본 브랜치의 생성기와 검사기를 사용해 실제 GitHub Wiki의 자동 영역·전체 설정 목록·한국어 사이드바 설정 트리와 `Settings-Catalog.json`을 한 Wiki 커밋으로 동기화한다. 개발 브랜치나 별도의 생성물 브랜치는 만들지 않는다.
 
-Carrot Web 조회 기준:
+KO Web 조회 기준:
 
 ```text
 https://raw.githubusercontent.com/wiki/ajouatom/openpilot/Settings-Catalog.json
 https://raw.githubusercontent.com/wiki/ajouatom/openpilot/{PAGE}.md
 ```
 
-Carrot Web의 조회 계층은
+KO Web의 조회 계층은
 `openpilot/selfdrive/carrot/web/src/features/settings/published_documentation.js`에 있다.
 설정 상세를 열면 30초 단위로 인덱스를 재검증하고 현재 언어의 해당 설정 페이지만
 받는다. 인덱스와 페이지의 SHA-256·바이트 크기·마커 메타데이터가 모두 맞아야

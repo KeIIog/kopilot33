@@ -3,7 +3,7 @@
 export const VISION_CONNECTION_ABORT_CODE = "vision-connection-stale";
 
 export class VisionConnectionAbortError extends Error {
-  constructor(message = "Carrot Vision connection attempt is no longer current") {
+  constructor(message = "KO Vision connection attempt is no longer current") {
     super(message);
     this.name = "AbortError";
     this.code = VISION_CONNECTION_ABORT_CODE;
@@ -45,7 +45,7 @@ export function createVisionConnectionTransactionManager(options = {}) {
 
   function assertCurrent(transaction, message = "") {
     if (!isCurrent(transaction)) {
-      throw new VisionConnectionAbortError(message || "Carrot Vision connection attempt was superseded");
+      throw new VisionConnectionAbortError(message || "KO Vision connection attempt was superseded");
     }
     return transaction;
   }

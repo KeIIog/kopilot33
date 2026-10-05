@@ -14,7 +14,7 @@
   <!-- Keep CSS layout breakpoints stable when the keyboard opens. viewport.js
        follows visualViewport for available height and keyboard-aware controls. -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual" />
-  <title>CarrotPilot</title>
+  <title>KOPilot</title>
   <link rel="icon" type="image/png" href="/assets/img_chffr_wheel.png?v=2604-01" />
   <script>
     (function () {
@@ -234,11 +234,11 @@
               <span id="settingTabDeviceLabel">디바이스</span>
             </button>
             <button type="button" class="setting-tab is-active" id="settingTabCarrot" data-setting-tab="carrot" role="tab" aria-selected="true">
-              <span id="settingTabCarrotLabel">당근파일럿</span>
+              <span id="settingTabCarrotLabel">KOPilot</span>
             </button>
           </div>
 
-          <!-- CarrotPilot Groups -->
+          <!-- KOPilot Groups -->
           <div id="carrotTabContent">
             <form id="settingInlineSearch" class="setting-inline-search" role="search">
               <div class="setting-inline-search__field">
@@ -738,13 +738,13 @@
           <button id="btnDisplayModeCycle" class="carrot-stage__controlBtn carrot-stage__controlBtn--display" type="button" aria-label="Display mode">Normal</button>
         </div>
         </div>
-        <div id="carrotNaviDivider" class="carrot-navi-divider" data-drive-workspace-divider role="separator" aria-orientation="vertical" aria-label="Resize Carrot Navi" aria-valuemin="30" aria-valuemax="70" aria-valuenow="70" tabindex="0" hidden>
+        <div id="carrotNaviDivider" class="carrot-navi-divider" data-drive-workspace-divider role="separator" aria-orientation="vertical" aria-label="Resize KO Navi" aria-valuemin="30" aria-valuemax="70" aria-valuenow="70" tabindex="0" hidden>
           <span aria-hidden="true"></span>
         </div>
-        <aside id="carrotNaviPane" class="carrot-navi-pane" data-drive-workspace-slot="secondary" aria-label="Carrot Navi" aria-hidden="true">
+        <aside id="carrotNaviPane" class="carrot-navi-pane" data-drive-workspace-slot="secondary" aria-label="KO Navi" aria-hidden="true">
           <video id="carrotNaviVideo" class="carrot-navi-pane__video" muted autoplay playsinline webkit-playsinline disableremoteplayback preload="auto" aria-hidden="true"></video>
-          <canvas id="carrotNaviCanvas" class="carrot-navi-pane__canvas" aria-label="Carrot Navi map"></canvas>
-          <canvas id="carrotNaviOverlayCanvas" class="carrot-navi-pane__overlay" aria-label="Carrot Navi guidance"></canvas>
+          <canvas id="carrotNaviCanvas" class="carrot-navi-pane__canvas" aria-label="KO Navi map"></canvas>
+          <canvas id="carrotNaviOverlayCanvas" class="carrot-navi-pane__overlay" aria-label="KO Navi guidance"></canvas>
           <div id="carrotNaviStatus" class="carrot-navi-pane__status" hidden></div>
         </aside>
       </div>
@@ -822,12 +822,12 @@
 
   <div id="driveHudCard">
     <div id="carrotRtcPerfHud" class="carrot-rtc-perf" hidden>
-      <section id="carrotRtcPerfSummary" class="carrot-rtc-perf-summary" data-tone="offline" hidden aria-label="Carrot Vision live diagnostic summary">
+      <section id="carrotRtcPerfSummary" class="carrot-rtc-perf-summary" data-tone="offline" hidden aria-label="KO Vision live diagnostic summary">
         <div class="carrot-rtc-perf-summary__head">
           <span class="carrot-rtc-perf__dot" aria-hidden="true"></span>
           <strong id="carrotRtcPerfTitle" class="carrot-rtc-perf-summary__title">VISION OFFLINE</strong>
           <button id="carrotRtcPerfLogBtn" class="carrot-rtc-perf-summary__action" type="button">LOG</button>
-          <button id="carrotRtcPerfCloseBtn" class="carrot-rtc-perf-summary__close c-close c-close--sm" type="button" aria-label="Close Carrot Vision diagnostic summary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"></path></svg></button>
+          <button id="carrotRtcPerfCloseBtn" class="carrot-rtc-perf-summary__close c-close c-close--sm" type="button" aria-label="Close KO Vision diagnostic summary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"></path></svg></button>
         </div>
         <div class="carrot-rtc-perf-summary__sub">RTC ROAD CAMERA / LIVE DIAGNOSTIC</div>
         <div class="carrot-rtc-perf-summary__grid">
@@ -846,7 +846,7 @@
         <span id="carrotRtcPerfGlanceText" class="carrot-rtc-perf-glance__text">VISION OFFLINE</span>
       </div>
     </div>
-    <button id="carrotRtcPerfHoldTarget" class="carrot-rtc-perf-hold-target" type="button" aria-label="Hold HUD to toggle Carrot Vision diagnostic summary"></button>
+    <button id="carrotRtcPerfHoldTarget" class="carrot-rtc-perf-hold-target" type="button" aria-label="Hold HUD to toggle KO Vision diagnostic summary"></button>
     <!-- 구 초록 HUD(#hudRoot)는 신규 Carrot HUD 오버레이로 대체되어 제거됨. #driveHudCard 셸은 boot(DriveVisionHudContent)에 필요해 유지. -->
   </div>
 

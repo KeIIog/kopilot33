@@ -1,11 +1,11 @@
-# Carrot Web User Guide
+# KO Web User Guide
 
 [한국어](../ko/carrot-web.md)
 
-Carrot Web is a local web interface for viewing and managing carrotpilot from a phone, tablet, or PC connected to the same network as the device. It provides driving status, settings, logs, updates, and diagnostic tools.
+KO Web is a local web interface for viewing and managing carrotpilot from a phone, tablet, or PC connected to the same network as the device. It provides driving status, settings, logs, updates, and diagnostic tools.
 
 > [!WARNING]
-> Do not operate Carrot Web while driving. Change settings, select logs, enter terminal commands, and run tools only after parking safely.
+> Do not operate KO Web while driving. Change settings, select logs, enter terminal commands, and run tools only after parking safely.
 
 ## Connecting
 
@@ -17,7 +17,7 @@ Example: `http://192.168.0.25:7000`
 
 Select the white carrot icon on the device to show a large QR code for its current address. On C3, use the bottom-left button; on C4, use the bottom status-icon row. Scan it with a phone on the same network to connect. If the device IP changes while the QR screen is open, both the QR code and displayed address update automatically. Long addresses scale to fit instead of being shortened. The last QR refresh time appears below the address as numeric `HH:MM:SS`, with the 30-second auto-close countdown on the right. Tap the QR screen to close it, or leave it open and it closes when the countdown reaches zero.
 
-Carrot Web is a local device-management interface. Do not expose it directly to the internet or give its address, a remote-support link, or terminal access to an untrusted person.
+KO Web is a local device-management interface. Do not expose it directly to the internet or give its address, a remote-support link, or terminal access to an untrusted person.
 
 ## Pages at a glance
 
@@ -53,9 +53,9 @@ The following-distance bar and its 25 m label show the current dynamically adjus
 
 ### AR display and diagnostics
 
-- Enabling **Show AR** in `Tools > Web Settings` overlays Carrot Navi driving guidance on the Carrot Vision video and requests additional real-time pose and position data only while it is enabled.
+- Enabling **Show AR** in `Tools > Web Settings` overlays KO Navi driving guidance on the KO Vision video and requests additional real-time pose and position data only while it is enabled.
 - **AR debug** shows sign, anchor, and draw counts plus the current blocking reason, and can copy or save its diagnostic history.
-- The replay event timeline distinguishes recorded Carrot Navi connection changes, current and next maneuvers, lane guidance, road-safety alerts, average-speed zones, traffic signals, and intersection guidance.
+- The replay event timeline distinguishes recorded KO Navi connection changes, current and next maneuvers, lane guidance, road-safety alerts, average-speed zones, traffic signals, and intersection guidance.
 
 ### Layout
 
@@ -66,9 +66,9 @@ The following-distance bar and its 25 m label show the current dynamically adjus
 - road video or another supported content type in each area; and
 - swapping the two areas.
 
-A fresh install starts with **Area 1 full screen** in both orientations: Area 1 is **Carrot Vision** and Area 2 is **Carrot Navi**, so the Drive page shows Carrot Vision full screen. Switching to Split divides landscape 70% / 30% and portrait 50% / 50%.
+A fresh install starts with **Area 1 full screen** in both orientations: Area 1 is **KO Vision** and Area 2 is **KO Navi**, so the Drive page shows KO Vision full screen. Switching to Split divides landscape 70% / 30% and portrait 50% / 50%.
 
-**Default** restores both orientations to **Area 1 full screen** with Area 1 Carrot Vision and Area 2 Carrot Navi.
+**Default** restores both orientations to **Area 1 full screen** with Area 1 KO Vision and Area 2 KO Navi.
 
 Unavailable content reports waiting, recovering, unavailable, or unsupported. Changing the web layout does not change vehicle-control behavior.
 
@@ -112,7 +112,7 @@ Manage `ONNX Lane and BSD Detection` in **Settings → Driving → Steering → 
 
 After Jetson integration, the **Tools → eGPU status card** in `carrot-wip` also
 shows a connected Jetson's IP, temperature and current connection/error state,
-even without a previous eGPU connection. Open Carrot Web using the comma IP;
+even without a previous eGPU connection. Open KO Web using the comma IP;
 the Jetson IP displayed inside the card is its management address. Expired
 temperature/address readings are not presented as current values.
 
@@ -131,7 +131,7 @@ notice for physical validation limits of each installation path.
 
 - `Car Select`: choose the vehicle maker and model.
 - For the 2026 electric Staria, select `Hyundai Staria EV 2026`. Its accelerator and gear decoding differs from `Hyundai Staria 2023`; an existing selection is not migrated automatically. Reboot after selecting it, then check gear/pedal indications and CAN errors while parked.
-- `Language`: change the Carrot Web language.
+- `Language`: change the KO Web language.
 - `Web Settings`: configure the Drive layout, video, HUD, AR, and other web-only display options.
 - `Info`: view and copy the device type, branch, commit, identifiers, and network information.
 
@@ -154,13 +154,13 @@ notice for physical validation limits of each installation path.
 - `send tmux`: request a server-log upload.
 
 CAN diagnostics are uploaded automatically only when a currently received `carState` or `radarState` from the present onroad session reports a real CAN error. A timeout left over from the previous drive is not used, and capture is delayed for five seconds after detection so the log includes the immediate aftermath. In an automatic diagnostic log, `CarrotException can_error queued` means the upload was queued; the preceding `current onroad CAN error detected from ...` line identifies the source used for the decision.
-- `install required`: check and install packages used by optional Carrot Web features.
+- `install required`: check and install packages used by optional KO Web features.
 - `delete all videos`: delete screen recordings.
 - `delete all logs`: delete stored driving logs.
 - `Rebuild All`: rebuild and restart the software.
 - `reboot`: reboot the device.
 
-After deleting logs or videos, Carrot Web cannot replay or upload them for analysis. Complete any support upload first.
+After deleting logs or videos, KO Web cannot replay or upload them for analysis. Complete any support upload first.
 
 ### Settings backup and restore
 

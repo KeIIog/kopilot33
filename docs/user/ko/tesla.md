@@ -18,7 +18,7 @@ carrotpilot은 지원되는 Tesla Model 3와 Model Y에서 차량 속도, 조향
 <a id="automatic-cruise-speed"></a>
 ## 크루즈 설정속도 자동 조절
 
-지원되는 Tesla 차량에서 추가 차량 CAN 버스가 연결·감지된 상태로 **alpha longitudinal**(`AlphaLongitudinalEnabled`)을 켜면 크루즈 설정속도 자동 조절도 함께 활성화됩니다. 크루즈와 carrotpilot이 작동 중일 때 차량 DAS가 전달하는 제한속도에 맞춰 설정속도를 조절합니다. 별도의 Carrot Web 토글은 없으며, 순정 가감속 제어를 사용하는 차량에서는 작동하지 않습니다.
+지원되는 Tesla 차량에서 추가 차량 CAN 버스가 연결·감지된 상태로 **alpha longitudinal**(`AlphaLongitudinalEnabled`)을 켜면 크루즈 설정속도 자동 조절도 함께 활성화됩니다. 크루즈와 carrotpilot이 작동 중일 때 차량 DAS가 전달하는 제한속도에 맞춰 설정속도를 조절합니다. 별도의 KO Web 토글은 없으며, 순정 가감속 제어를 사용하는 차량에서는 작동하지 않습니다.
 
 제한속도가 안정적으로 유지되면 차량 표시 단위에 따라 1km/h 또는 1mph씩 조절합니다. 조절 사이에는 최소 0.5초를 두고, 차량의 설정속도 변경을 확인한 뒤 다음 조작을 보냅니다. 제한속도 정보가 없거나 오래되었을 때, 브레이크를 밟을 때, 취소하거나 제어를 해제했을 때는 자동 출력을 멈춥니다.
 

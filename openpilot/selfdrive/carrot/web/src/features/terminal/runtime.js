@@ -654,7 +654,7 @@ function rewriteTerminalMetaEcho(text) {
          (arg[0] === '"' && arg[arg.length - 1] === '"'))) {
       arg = arg.slice(1, -1);
     }
-    const label = getUIText("terminal_meta_running", "Carrot command");
+    const label = getUIText("terminal_meta_running", "KO command");
     return `> ${label}: ::${arg}`;
   });
 }

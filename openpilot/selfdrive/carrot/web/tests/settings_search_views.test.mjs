@@ -161,7 +161,7 @@ function panelHarness(overrides = {}) {
     placeholder: "설정 검색",
     profilePlaceholder: "프로필에서 검색",
     empty: "결과 없음",
-    sourceCarrot: "당근파일럿",
+    sourceCarrot: "KOPilot",
     sourceProfile: "프로필",
   };
   const view = createSettingSearchPanelView({

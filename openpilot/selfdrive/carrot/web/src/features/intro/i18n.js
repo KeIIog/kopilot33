@@ -37,10 +37,10 @@ globalThis.CarrotIntroI18n = {
     p1: "ADAS · 레이더 롱컨",
     p1d: "ADAS·레이더에 연결 · 코너레이더까지",
 
-    /* ② 당근파일럿 전용.
+    /* ② KOPilot 전용.
        근거 — opendbc/car/hyundai/interface.py:179 의 `# carrot` 분기:
        순정 openpilot 은 alpha_long 이 켜져야만 롱컨을 하는데,
-       당근파일럿은 CAMERA_SCC 가 켜지면 그 게이트를 무시하고
+       KOPilot은 CAMERA_SCC 가 켜지면 그 게이트를 무시하고
        openpilotLongitudinalControl 을 강제로 True 로 만든다.
        SCC 메시지는 카메라 버스에서 읽는다 (carstate.py:228). */
     p2: "카메라 롱컨",
@@ -94,7 +94,7 @@ globalThis.CarrotIntroI18n = {
     p1d: "On ADAS or radar · corner radar too",
 
     p2: "Camera long",
-    p2d: "On the camera only · CarrotPilot drives accel",
+    p2d: "On the camera only · KOPilot drives accel",
 
     p3: "Stock",
     p3d: "Stock SCC drives accel · steering only",

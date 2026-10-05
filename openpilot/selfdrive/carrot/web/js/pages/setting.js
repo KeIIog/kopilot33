@@ -1501,7 +1501,7 @@ function toggleSettingFabMenu() {
 
 function rebuildSettingSearchEntries() {
   settingSearchEntries = getSettingDerivedModel().buildSearchEntries({
-    carrot: getUIText("setting_search_source_carrot", "CarrotPilot"),
+    carrot: getUIText("setting_search_source_carrot", "KOPilot"),
     profile: getUIText("setting_search_source_profile", "Profile"),
   });
   return settingSearchEntries;
@@ -1571,7 +1571,7 @@ const settingSearchPanelView = settingSearchRuntime.createPanel({
     placeholder: getUIText("setting_search_placeholder", "Search name, description, group"),
     profilePlaceholder: getUIText("setting_profile_search_placeholder", "Search in this profile"),
     empty: getUIText("setting_search_empty", "No matching settings found."),
-    sourceCarrot: getUIText("setting_search_source_carrot", "CarrotPilot"),
+    sourceCarrot: getUIText("setting_search_source_carrot", "KOPilot"),
     sourceProfile: getUIText("setting_search_source_profile", "Profile"),
     count: getUIText("setting_inline_search_count", "Showing {shown} of {total}"),
   }),

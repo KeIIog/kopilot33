@@ -172,7 +172,7 @@ export function createRtcPerfHud(options = {}) {
       if (!runtimeWindow.CarrotVisionDiag?.uploadDiscord) throw new Error("diagnostic upload unavailable");
       await runtimeWindow.CarrotVisionDiag.uploadDiscord();
       logButtonEl.textContent = "SENT";
-      showToast("Carrot Vision log sent to Discord", { duration: 2600 });
+      showToast("KO Vision log sent to Discord", { duration: 2600 });
     } catch (error) {
       logButtonEl.textContent = "FAIL";
       showToast(`Discord upload failed: ${error?.message || error}`, { tone: "error", duration: 4200 });

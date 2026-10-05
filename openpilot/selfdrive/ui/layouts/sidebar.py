@@ -73,7 +73,7 @@ class Sidebar(Widget):
     self._connect_status = MetricData(tr_noop("CONNECT"), tr_noop("OFFLINE"), Colors.WARNING)
     self._recording_audio = False
 
-    self._carrot_web_img = gui_app.texture("icons/carrot_web.png", HOME_BTN.width, HOME_BTN.height)
+    self._carrot_web_img = gui_app.texture("icons/ko_web.png", HOME_BTN.width, HOME_BTN.height)
     self._settings_img = gui_app.texture("images/button_settings.png", SETTINGS_BTN.width, SETTINGS_BTN.height)
     self._mic_img = gui_app.texture("icons/microphone.png", 30, 30)
     self._mic_indicator_rect = rl.Rectangle(0, 0, 0, 0)
@@ -162,7 +162,7 @@ class Sidebar(Widget):
     tint = Colors.BUTTON_PRESSED if settings_down else Colors.BUTTON_NORMAL
     rl.draw_texture_ex(self._settings_img, rl.Vector2(SETTINGS_BTN.x, SETTINGS_BTN.y), 0.0, 1.0, tint)
 
-    # Carrot Web button
+    # KO Web button
     carrot_web_pressed = mouse_down and rl.check_collision_point_rec(mouse_pos, HOME_BTN)
     tint = Colors.BUTTON_PRESSED if carrot_web_pressed else Colors.BUTTON_NORMAL
     rl.draw_texture_ex(self._carrot_web_img, rl.Vector2(HOME_BTN.x, HOME_BTN.y), 0.0, 1.0, tint)

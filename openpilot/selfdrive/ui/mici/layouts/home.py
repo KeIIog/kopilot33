@@ -98,7 +98,7 @@ class MiciHomeLayout(Widget):
     self._ip_address = "Offline"
 
     self._settings_icon = IconWidget("icons_mici/settings.png", (48, 48), opacity=0.9)
-    self._carrot_web_icon = IconWidget("icons/carrot_web.png", (48, 48), opacity=0.9)
+    self._carrot_web_icon = IconWidget("icons/ko_web.png", (48, 48), opacity=0.9)
     self._experimental_icon = IconWidget("icons_mici/experimental_mode.png", (48, 48))
     self._mic_icon = IconWidget("icons_mici/microphone.png", (32, 46))
 
@@ -110,7 +110,7 @@ class MiciHomeLayout(Widget):
       self._mic_icon,
     ], spacing=18)
 
-    self._openpilot_label = UnifiedLabel("carrotpilot", font_size=55, font_weight=FontWeight.DISPLAY, max_width=480, wrap_text=False)
+    self._openpilot_label = UnifiedLabel("KOPilot", font_size=55, font_weight=FontWeight.DISPLAY, max_width=480, wrap_text=False)
     self._version_label = UnifiedLabel("", font_size=30, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
     self._large_version_label = UnifiedLabel("", font_size=64, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
     self._date_label = UnifiedLabel("", font_size=30, text_color=rl.GRAY, font_weight=FontWeight.ROMAN, max_width=480, wrap_text=False)
@@ -198,7 +198,7 @@ class MiciHomeLayout(Widget):
       # release branch
       release_branch = self._version_text[1] in RELEASE_BRANCHES
 
-      # 1踰덉㎏ 以? carrotpilot ?놁뿉 踰꾩쟾
+      # 1踰덉㎏ 以? KOPilot ?놁뿉 踰꾩쟾
       version_y = text_pos.y + self._openpilot_label.font_size - self._version_label.font_size
       self._version_label.set_text(" " + self._version_text[0])
       self._version_label.set_position(text_pos.x + self._openpilot_label.text_width + 8, version_y)

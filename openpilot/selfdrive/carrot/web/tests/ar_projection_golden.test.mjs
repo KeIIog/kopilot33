@@ -44,7 +44,7 @@ test("projection fixture stays generated from canonical openpilot Python transfo
   ]);
 });
 
-test("Carrot Vision owns the browser camera profiles and AR does not duplicate them", () => {
+test("KO Vision owns the browser camera profiles and AR does not duplicate them", () => {
   const visionSource = readFileSync(resolve(WEB_DIR, "js/realtime/home_drive.js"), "utf8");
   const arProjectionSource = readFileSync(
     resolve(WEB_DIR, "src/features/drive/contents/vision/ar/projection.js"),
@@ -114,7 +114,7 @@ test("Three clip projection matches the same Python golden pixels", () => {
   }
 });
 
-test("AR ground anchors and Carrot Vision road geometry share the exact calibrated stage", () => {
+test("AR ground anchors and KO Vision road geometry share the exact calibrated stage", () => {
   for (const sample of fixture.cases) {
     const profile = fixture.profiles[sample.sensor];
     const stage = {

@@ -127,7 +127,7 @@ export function reduceVisionSessionState(current, event) {
   const previous = createVisionSessionState(current);
   const type = typeof event === "string" ? event : event?.type;
   if (!VALID_EVENTS.has(type)) {
-    throw new TypeError(`Unknown Carrot Vision session event: ${String(type)}`);
+    throw new TypeError(`Unknown KO Vision session event: ${String(type)}`);
   }
 
   const next = { ...previous };

@@ -289,7 +289,7 @@ export function createSettingsDerivedModel(options = {}) {
 
   function buildSearchEntries(sourceLabels = {}) {
     const resolvedLabels = {
-      carrot: sourceLabels.carrot || "CarrotPilot",
+      carrot: sourceLabels.carrot || "KOPilot",
       profile: sourceLabels.profile || "Profile",
     };
     const entries = [];

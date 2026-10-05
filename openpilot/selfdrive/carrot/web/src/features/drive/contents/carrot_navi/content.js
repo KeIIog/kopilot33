@@ -39,7 +39,7 @@ export function createCarrotNaviContent(context = {}) {
   content = driveContentApi.create("carrot-navi", {
     mount(nextRoot) {
       if (!nextRoot || typeof nextRoot.appendChild !== "function") {
-        throw new TypeError("Carrot Navi content mount requires a slot host");
+        throw new TypeError("KO Navi content mount requires a slot host");
       }
       currentHost = nextRoot;
       if (nextRoot !== compatibilityRoot && compatibilityRoot.parentNode !== nextRoot) {

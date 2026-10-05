@@ -45,7 +45,7 @@ class QRCodeTexture:
       self._texture = rl.load_texture_from_image(image)
       rl.set_texture_filter(self._texture, rl.TextureFilter.TEXTURE_FILTER_POINT)
     except Exception:
-      cloudlog.exception("Carrot Web QR code generation failed")
+      cloudlog.exception("KO Web QR code generation failed")
       self._texture = None
     return True
 

@@ -1,4 +1,4 @@
-# Carrot Web
+# KO Web
 
 Structure map for `openpilot/selfdrive/carrot`.
 
@@ -63,8 +63,8 @@ openpilot/selfdrive/carrot/
 | Feature | Path |
 |---|---|
 | Drive workspace, layout, registry | `web/src/features/drive/core/` |
-| Carrot Vision | `web/src/features/drive/contents/vision/` |
-| Carrot Navi | `web/src/features/drive/contents/carrot_navi/` |
+| KO Vision | `web/src/features/drive/contents/vision/` |
+| KO Navi | `web/src/features/drive/contents/carrot_navi/` |
 | Graph and forward driving data | `web/src/features/drive/contents/drive_insights/` |
 | Replay | `web/src/features/replay/` |
 | Settings | `web/src/features/settings/` |

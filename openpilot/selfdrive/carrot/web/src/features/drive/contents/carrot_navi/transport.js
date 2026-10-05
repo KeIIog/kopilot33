@@ -10,7 +10,7 @@ function resolveNavigationWorkerUrl(options, target) {
   const resolveAssetUrl = options.resolveAssetUrl
     || ((logicalId) => globalThis.CarrotAssetUrl.resolve(logicalId));
   const url = String(resolveAssetUrl(NAVIGATION_MEDIA_WORKER_ID) || "");
-  if (!url) throw new Error("Carrot Navi media worker asset URL is empty");
+  if (!url) throw new Error("KO Navi media worker asset URL is empty");
   return url;
 }
 
@@ -68,7 +68,7 @@ export function createTransport(options = {}) {
     if (worker) return worker;
     worker = new Worker(workerUrl);
     worker.addEventListener("message", (event) => options.onWorkerMessage?.(event.data || {}));
-    worker.addEventListener("error", (event) => options.onError?.(event.message || "Carrot Navi worker error"));
+    worker.addEventListener("error", (event) => options.onError?.(event.message || "KO Navi worker error"));
     worker.postMessage({ type: "configure" });
     return worker;
   }

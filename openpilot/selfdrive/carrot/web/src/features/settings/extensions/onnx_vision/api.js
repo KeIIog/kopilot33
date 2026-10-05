@@ -29,7 +29,7 @@ async function requestJson(target, endpoint, options = {}) {
   return payload && typeof payload === "object" ? payload : {};
 }
 
-/** All browser access stays on the Carrot Web origin; port 8082 is never exposed here. */
+/** All browser access stays on the KO Web origin; port 8082 is never exposed here. */
 export function loadOnnxVisionStatus(target = globalThis, options = {}) {
   return requestJson(target, ONNX_VISION_STATUS_ENDPOINT, options);
 }

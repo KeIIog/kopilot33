@@ -14,10 +14,10 @@ While onroad, two consecutive fresh accelerometer samples with a calibrated long
 
 1.5g is an experimental threshold, not confirmation of a collision. Rough roads, mount impacts, and device drops can cause false triggers; sensor limits and short impulses can cause missed impacts. Vehicle detection rates, false triggers, display, sound, and physical reboot remain unvalidated. The notification respects existing volume and mute settings.
 
-When you ask a Carrot support specialist to analyze abnormal behavior, use `Logs > Dashcam` in Carrot Web to find and upload the affected time range. A dashcam upload can provide vehicle-state and control-decision data in addition to the visible road video.
+When you ask a Carrot support specialist to analyze abnormal behavior, use `Logs > Dashcam` in KO Web to find and upload the affected time range. A dashcam upload can provide vehicle-state and control-decision data in addition to the visible road video.
 
 > [!WARNING]
-> Operate Carrot Web only after parking safely. While driving, do not search for or select logs; remember the occurrence time and symptom instead.
+> Operate KO Web only after parking safely. While driving, do not search for or select logs; remember the occurrence time and symptom instead.
 
 ## Record these details first
 
@@ -82,15 +82,15 @@ Speed and road conditions:
 Lead or surrounding vehicle conditions:
 Driver intervention:
 Number of reproductions:
-Upload result: (paste the text copied from Carrot Web)
+Upload result: (paste the text copied from KO Web)
 Screen recording: yes / no
 ```
 
-Only one upload job can run at a time. If the browser is briefly closed and reopened while the same device-side job is still running, Carrot Web may restore its progress or result. A job ID saved by the browser is verified against the device before it is used, so an already-finished or missing job does not block a new upload by itself. A device-side upload with no activity for 30 minutes is marked failed and released so that it cannot block later uploads.
+Only one upload job can run at a time. If the browser is briefly closed and reopened while the same device-side job is still running, KO Web may restore its progress or result. A job ID saved by the browser is verified against the device before it is used, so an already-finished or missing job does not block a new upload by itself. A device-side upload with no activity for 30 minutes is marked failed and released so that it cannot block later uploads.
 
 ## Include a screen recording when useful
 
-A Carrot Web screen recording helps explain what the driver saw, including HUD, alerts, and visible UI changes.
+A KO Web screen recording helps explain what the driver saw, including HUD, alerts, and visible UI changes.
 
 1. Before driving, select `Record` on the Drive page.
 2. Confirm that the `REC` indicator appears.
@@ -105,10 +105,10 @@ A screen recording alone may not contain enough data to determine the control ca
 |---|---|
 | The latest drive is missing | Confirm that the drive has completely ended, wait briefly, and check the list again. |
 | Recording or incomplete-segment error | Wait for that segment to be finalized, then select it again. |
-| Another upload is already running | Carrot Web rechecks the existing device-side job and restores its progress. If it is genuinely running, wait for it to finish or cancel it. A job with no activity for 30 minutes is released automatically. |
+| Another upload is already running | KO Web rechecks the existing device-side job and restores its progress. If it is genuinely running, wait for it to finish or cancel it. A job with no activity for 30 minutes is released automatically. |
 | Upload stalls or fails | Check the device's internet connection and retry only the failed segment. |
 | Only some files succeeded | Read the completion result and resend the segment containing the failed item. |
-| The required log is gone | Check whether `Tools > delete all logs` or storage cleanup was used. Deleted logs cannot be restored or uploaded from Carrot Web. |
+| The required log is gone | Check whether `Tools > delete all logs` or storage cleanup was used. Deleted logs cannot be restored or uploaded from KO Web. |
 
 Use the segment menu's `qcamera`, `rlog`, or `qlog` download only when a specialist asks for a particular original file. For a normal analysis request, use `Upload Logs` or `Upload selected`.
 
@@ -118,5 +118,5 @@ Uploaded data may include road video, location and vehicle-state logs, device id
 
 ## Related guides
 
-- [Carrot Web User Guide](carrot-web.md)
+- [KO Web User Guide](carrot-web.md)
 - [Understanding Settings](settings.md)

@@ -432,8 +432,8 @@
     const exact = {
       "Cluster HUD is enabled; monitor encoder load and thermal headroom while streaming.": text("youtube_live_warning_cluster", "Cluster HUD is enabled. Monitor encoder load and temperature while streaming."),
       "Cluster HUD is enabled; monitor overall load and temperature during simultaneous use.": text("youtube_live_warning_cluster", "Cluster HUD is enabled. Monitor overall load and temperature during simultaneous use."),
-      "Carrot Vision is enabled; YouTube Live shares camera/encoder/network resources.": text("youtube_live_warning_vision", "Carrot Vision is enabled. Camera, encoder, and network resources are shared."),
-      "Carrot Vision is enabled; simultaneous streaming increases network and memory bandwidth use.": text("youtube_live_warning_vision", "Carrot Vision is enabled. Simultaneous streaming increases network and memory bandwidth use."),
+      "KO Vision is enabled; YouTube Live shares camera/encoder/network resources.": text("youtube_live_warning_vision", "KO Vision is enabled. Camera, encoder, and network resources are shared."),
+      "KO Vision is enabled; simultaneous streaming increases network and memory bandwidth use.": text("youtube_live_warning_vision", "KO Vision is enabled. Simultaneous streaming increases network and memory bandwidth use."),
       "High quality mode is planned for Phase 3; Phase 2 keeps qRoadEncodeData only.": text("youtube_live_warning_quality", "The selected video mode is unavailable."),
       "The selected video mode is waiting for the shared livestream encoder to start onroad.": text("youtube_live_warning_source_wait", "The selected video mode is waiting for its encoder."),
       "High quality is waiting for the dedicated YouTube encoder to start onroad.": text("youtube_live_warning_high_wait", "High quality is waiting for its encoder."),
@@ -535,7 +535,7 @@
       "",
       `[${text("youtube_live_check_resource_section", "Resources")}]`,
       `${text("youtube_live_resource_cluster", "Cluster HUD")}: ${cluster.enabled ? enabled : disabled}`,
-      `${text("youtube_live_resource_vision", "Carrot Vision")}: ${vision.enabled ? enabled : disabled}`,
+      `${text("youtube_live_resource_vision", "KO Vision")}: ${vision.enabled ? enabled : disabled}`,
     ];
     const warnings = uniqueLocalizedMessages([
       ...(Array.isArray(test.warnings) ? test.warnings : []),

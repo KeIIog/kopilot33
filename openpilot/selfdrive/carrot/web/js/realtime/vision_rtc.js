@@ -1,4 +1,4 @@
-/* Carrot Vision WebRTC runtime.
+/* KO Vision WebRTC runtime.
  * Owns only the road-camera WebRTC connection, RTC health, hold-frame, and RTC stats.
  */
 var CARROT_VISION_PHASE = window.CarrotVisionPhase;
@@ -15,7 +15,7 @@ const RTC_TAB_ID = String(window.CarrotStreamIdentity?.tabId || "");
 const RTC_CLIENT_ID = RTC_DEVICE_ID;
 const RTC_CONNECTION_TRANSACTION_API = window.DriveVisionConnectionTransactions;
 if (!RTC_CONNECTION_TRANSACTION_API?.create) {
-  throw new Error("Carrot Vision connection transaction manager is unavailable");
+  throw new Error("KO Vision connection transaction manager is unavailable");
 }
 const RTC_CONNECTION_TRANSACTIONS = RTC_CONNECTION_TRANSACTION_API.create();
 
@@ -35,7 +35,7 @@ function rtcIsConnectionAbort(error) {
 function rtcAssertCurrentTransaction(transaction, pc = null, boundary = "") {
   RTC_CONNECTION_TRANSACTIONS.assertCurrent(
     transaction,
-    boundary ? `Carrot Vision connection superseded after ${boundary}` : "",
+    boundary ? `KO Vision connection superseded after ${boundary}` : "",
   );
   if (pc && (
     pc.__carrotRtcGeneration !== transaction.generation
@@ -43,7 +43,7 @@ function rtcAssertCurrentTransaction(transaction, pc = null, boundary = "") {
     || (RTC_PENDING_PC !== pc && RTC_PC !== pc)
   )) {
     throw new RTC_CONNECTION_TRANSACTION_API.AbortError(
-      boundary ? `Carrot Vision peer superseded after ${boundary}` : "Carrot Vision peer is stale",
+      boundary ? `KO Vision peer superseded after ${boundary}` : "KO Vision peer is stale",
     );
   }
   return transaction;
@@ -62,7 +62,7 @@ function rtcPeerTransactionIsCurrent(pc) {
 }
 
 class CarrotVisionStreamBusyError extends Error {
-  constructor(message = "Carrot Vision is active on another device.") {
+  constructor(message = "KO Vision is active on another device.") {
     super(message);
     this.name = "CarrotVisionStreamBusyError";
     this.code = RTC_STREAM_BUSY_CODE;
@@ -748,7 +748,7 @@ function rtcMarkOwnershipBusy(message = "") {
   stopRtcPerfPolling();
   setCarrotVisionPhase(CARROT_VISION_PHASE.BUSY, {
     reason: "vision stream busy",
-    statusText: getUIText("vision_stream_busy", "Carrot Vision is active on another device."),
+    statusText: getUIText("vision_stream_busy", "KO Vision is active on another device."),
     detailText: "",
     rtc: { state: "busy", pending: false, liveTrack: false, pcLabel: "none", trackSeen: false },
     updateRtcStatus: true,
@@ -1226,7 +1226,7 @@ function rtcScheduleResumeHealthCheck(reason = "returned visible") {
 
 async function waitIceComplete(pc, timeoutMs = RTC_ICE_GATHER_TIMEOUT_MS, signal = null) {
   if (signal?.aborted) {
-    throw new RTC_CONNECTION_TRANSACTION_API.AbortError("Carrot Vision ICE gathering was cancelled");
+    throw new RTC_CONNECTION_TRANSACTION_API.AbortError("KO Vision ICE gathering was cancelled");
   }
   if (pc.iceGatheringState === "complete") return;
   await new Promise((resolve, reject) => {
@@ -1250,7 +1250,7 @@ async function waitIceComplete(pc, timeoutMs = RTC_ICE_GATHER_TIMEOUT_MS, signal
     }
     function onabort() {
       finish(() => reject(new RTC_CONNECTION_TRANSACTION_API.AbortError(
-        "Carrot Vision ICE gathering was cancelled",
+        "KO Vision ICE gathering was cancelled",
       )));
     }
     pc.addEventListener("icegatheringstatechange", onchg);
@@ -1261,7 +1261,7 @@ async function waitIceComplete(pc, timeoutMs = RTC_ICE_GATHER_TIMEOUT_MS, signal
 async function fetchWithTimeout(url, options = {}, timeoutMs = RTC_STREAM_FETCH_TIMEOUT_MS, externalSignal = null) {
   const upstreamSignal = externalSignal || options.signal || null;
   if (upstreamSignal?.aborted) {
-    throw new RTC_CONNECTION_TRANSACTION_API.AbortError("Carrot Vision stream request was cancelled");
+    throw new RTC_CONNECTION_TRANSACTION_API.AbortError("KO Vision stream request was cancelled");
   }
   if (typeof AbortController === "undefined") {
     return fetch(url, options);
@@ -1280,10 +1280,10 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = RTC_STREAM_FETCH_
     return await fetch(url, { ...options, signal: controller.signal });
   } catch (error) {
     if (upstreamSignal?.aborted) {
-      throw new RTC_CONNECTION_TRANSACTION_API.AbortError("Carrot Vision stream request was cancelled");
+      throw new RTC_CONNECTION_TRANSACTION_API.AbortError("KO Vision stream request was cancelled");
     }
     if (timedOut) {
-      const timeoutError = new Error(`Carrot Vision stream request timed out after ${timeoutMs}ms`);
+      const timeoutError = new Error(`KO Vision stream request timed out after ${timeoutMs}ms`);
       timeoutError.name = "TimeoutError";
       throw timeoutError;
     }
@@ -1386,7 +1386,7 @@ async function rtcConnectOnce(options = {}) {
       video.playsInline = true;
     }
 
-    // teleoprtc uses the "data" label for the offer-side channel. Carrot Vision
+    // teleoprtc uses the "data" label for the offer-side channel. KO Vision
     // carries only a 12-byte RTP timestamp/source-frame mapping on it; state
     // remains on the single Compact WebSocket.
     const frameSyncChannel = pc.createDataChannel("data", {
@@ -1556,7 +1556,7 @@ async function rtcConnectOnce(options = {}) {
     const answer = responsePayload;
     if (!answer || !answer.sdp) throw new Error("bad answer");
     if (answer.attempt_id && String(answer.attempt_id) !== transaction.attemptId) {
-      const mismatchError = new Error("Carrot Vision stream answer belongs to an older attempt");
+      const mismatchError = new Error("KO Vision stream answer belongs to an older attempt");
       mismatchError.code = "vision-answer-attempt-mismatch";
       throw mismatchError;
     }

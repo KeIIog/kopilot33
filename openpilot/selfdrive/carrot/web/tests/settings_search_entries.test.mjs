@@ -91,7 +91,7 @@ test("the overlay index matches an NFD query against its NFC haystack", () => {
     },
     language: "ko",
   });
-  const entries = model.buildSearchEntries({ carrot: "CarrotPilot", profile: "Profile" });
+  const entries = model.buildSearchEntries({ carrot: "KOPilot", profile: "Profile" });
 
   assert.deepEqual(names(filterSettingSearchEntries(entries, { query: "감속".normalize("NFD") })), ["Decel"]);
   assert.deepEqual(names(filterSettingSearchEntries(entries, { query: "DECEL" })), ["Decel"]);
@@ -110,7 +110,7 @@ test("detail children are searchable through their parent's screen", () => {
     },
     language: "en",
   });
-  const entries = model.buildSearchEntries({ carrot: "CarrotPilot", profile: "Profile" });
+  const entries = model.buildSearchEntries({ carrot: "KOPilot", profile: "Profile" });
 
   const child = entries.find((entry) => entry.name === "LaneThreshold");
   assert.equal(child.detailParent, "ShareData");

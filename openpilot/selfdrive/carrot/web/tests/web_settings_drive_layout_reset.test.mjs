@@ -14,10 +14,10 @@ test("the layout section renders a defaults button on the orientation row", () =
   assert.match(styles, /\.drive-layout-reset\b/);
 });
 
-test("the defaults button restores Area 1 full screen with Carrot Vision", () => {
+test("the defaults button restores Area 1 full screen with KO Vision", () => {
   // The reset block is everything from its bind selector up to the component
   // registration. Both orientations must end at 영역 1 전체 with Area 1 =
-  // Carrot Vision and Area 2 = Carrot Navi; mode and contents use the spec's
+  // KO Vision and Area 2 = KO Navi; mode and contents use the spec's
   // own constants so a stale page cannot leave them as-is, and the split
   // ratio follows the injected spec default.
   const start = source.indexOf('"[data-drive-layout-reset]"');

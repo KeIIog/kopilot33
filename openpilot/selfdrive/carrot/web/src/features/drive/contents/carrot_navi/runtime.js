@@ -105,7 +105,7 @@ export function createCarrotNaviRuntime(options = {}) {
     className: "carrot-navi-pane__intro",
     feature: {
       id: layoutSpec.CONTENT.NAVIGATION,
-      label: () => uiText("web_drive_layout_content_navigation", "Carrot Navi"),
+      label: () => uiText("web_drive_layout_content_navigation", "KO Navi"),
     },
   });
   const introStatus = introApi?.STATUS;
@@ -113,7 +113,7 @@ export function createCarrotNaviRuntime(options = {}) {
   const ownershipSurface = stateSurfaceApi?.create?.({
     host: pane,
     className: "carrot-navi-pane__ownershipNotice",
-    featureLabel: () => uiText("web_drive_layout_content_navigation", "Carrot Navi"),
+    featureLabel: () => uiText("web_drive_layout_content_navigation", "KO Navi"),
   });
   if (!intro || !introStatus || !ownershipSurface) return EMPTY_RUNTIME;
 
@@ -292,7 +292,7 @@ function updateRuntimeStatus(now = target.performance.now(), introVisible = fals
 }
 
 function handleDecodeError(error) {
-  decodeError = String(error?.message || error || "Carrot Navi decode error");
+  decodeError = String(error?.message || error || "KO Navi decode error");
   if (environmentActive) lifecycle.transition("recovering", decodeError);
   showStatus("waiting", "지도 디코더 복구 중");
   requestMediaRecovery(decodeError, 120);
@@ -396,7 +396,7 @@ function evaluateSplit() {
 
 function requestMediaRecovery(reason, minimumDelayMs = 0) {
   if (!environmentActive || transport.snapshot().ownershipBlocked) return;
-  pendingRecoveryReason = String(reason || "Carrot Navi media recovery").slice(0, 128);
+  pendingRecoveryReason = String(reason || "KO Navi media recovery").slice(0, 128);
   lifecycle.transition("recovering", pendingRecoveryReason);
   if (mediaRecoveryTimer) return;
   const now = target.performance.now();
@@ -408,7 +408,7 @@ function requestMediaRecovery(reason, minimumDelayMs = 0) {
     mediaRecoveryTimer = 0;
     if (!environmentActive) return;
     lastMseRecoveryAt = target.performance.now();
-    decodeError = pendingRecoveryReason || "Carrot Navi media recovery";
+    decodeError = pendingRecoveryReason || "KO Navi media recovery";
     pendingRecoveryReason = "";
     mse.destroy();
     transport.recoverMedia();
@@ -425,7 +425,7 @@ function recoverMseIfStalled(now = target.performance.now()) {
       || presentation.lastFrameAt <= 0
       || now - presentation.lastFrameAt < MSE_STALL_RECOVERY_MS
       || mediaRecoveryTimer) return;
-  requestMediaRecovery("Carrot Navi MSE playback recovery");
+  requestMediaRecovery("KO Navi MSE playback recovery");
 }
 
 function clientDiagnosticPayload() {

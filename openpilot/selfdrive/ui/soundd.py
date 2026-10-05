@@ -35,11 +35,17 @@ if HARDWARE.get_device_type() == "tizi":
 AudibleAlert = car.CarControl.HUDControl.AudibleAlert
 ButtonType = car.CarState.ButtonEvent.Type
 
+ENGAGE_VOLUME_ALERTS = {
+  AudibleAlert.engage,
+  AudibleAlert.disengage,
+  AudibleAlert.reverseGear,
+}
+
 
 sound_list: dict[int, tuple[str, int | None, float]] = {
   # AudibleAlert, file name, play count (none for infinite)
-  AudibleAlert.engage: ("engage.wav", 1, float(Params().get_int("SoundVolumeAdjustEngage"))/100.),
-  AudibleAlert.disengage: ("disengage.wav", 1, float(Params().get_int("SoundVolumeAdjustEngage"))/100.),
+  AudibleAlert.engage: ("engage.wav", 1, MAX_VOLUME),
+  AudibleAlert.disengage: ("disengage.wav", 1, MAX_VOLUME),
   AudibleAlert.refuse: ("refuse.wav", 1, MAX_VOLUME),
 
   AudibleAlert.prompt: ("prompt.wav", 1, MAX_VOLUME),
@@ -63,7 +69,7 @@ sound_list: dict[int, tuple[str, int | None, float]] = {
   AudibleAlert.disengage2:  ("audio_disengage.wav", None, MAX_VOLUME),
   AudibleAlert.speedDown:  ("audio_speed_down.wav", None, MAX_VOLUME),
   AudibleAlert.audioTurn: ("audio_turn.wav", None, MAX_VOLUME),
-  AudibleAlert.reverseGear: ("reverse_gear.wav", 1, float(Params().get_int("SoundVolumeAdjustEngage"))/100.),
+  AudibleAlert.reverseGear: ("reverse_gear.wav", 1, MAX_VOLUME),
   AudibleAlert.audio1: ("audio_1.wav", None, MAX_VOLUME),
   AudibleAlert.audio2: ("audio_2.wav", None, MAX_VOLUME),
   AudibleAlert.audio3: ("audio_3.wav", None, MAX_VOLUME),
@@ -79,8 +85,8 @@ sound_list: dict[int, tuple[str, int | None, float]] = {
 }
 if HARDWARE.get_device_type() == "tizi":
   sound_list.update({
-    AudibleAlert.engage: ("engage_tizi.wav", 1, float(Params().get_int("SoundVolumeAdjustEngage"))/100.),
-    AudibleAlert.disengage: ("disengage_tizi.wav", 1, float(Params().get_int("SoundVolumeAdjustEngage"))/100.),
+    AudibleAlert.engage: ("engage_tizi.wav", 1, MAX_VOLUME),
+    AudibleAlert.disengage: ("disengage_tizi.wav", 1, MAX_VOLUME),
   })
 
 def _param_string(value) -> str:
@@ -135,13 +141,11 @@ def check_selfdrive_timeout_alert(sm):
 
 
 def dm_warning_volume(alert, alert_type, volume):
-  """Protect DM's two audible stages at the final PCM gain, not its shared asset.
-
-  Event stage 1 is visual-only; stage 2 is the first sound and stage 3 is final.
-  Other events (including navigation) reuse these sounds without DM's gain rule.
-  """
-  if alert_type in ('driverDistracted3/permanent', 'driverUnresponsive3/permanent') and alert == AudibleAlert.warningImmediate:
+  """Apply mute to non-critical tones while preserving safety warnings."""
+  if alert == AudibleAlert.warningImmediate:
     return MAX_VOLUME
+  if alert == AudibleAlert.warningSoft:
+    return max(0.7, volume)
   if alert_type in ('driverDistracted2/permanent', 'driverUnresponsive2/permanent') and alert == AudibleAlert.promptDistracted:
     return max(0.7, volume)
   return volume
@@ -175,7 +179,8 @@ def linear_resample(samples, original_rate, new_rate):
 class Soundd:
   def __init__(self):
     self.params = Params()
-    self.soundVolumeAdjust = 1.0
+    self.soundVolumeAdjust = max(0.0, float(self.params.get_int("SoundVolumeAdjust")) / 100.0)
+    self.soundVolumeAdjustEngage = max(0.0, float(self.params.get_int("SoundVolumeAdjustEngage")) / 100.0)
     self.carrot_count_down = 0
 
     self.lang = read_sound_language_setting(self.params)
@@ -258,7 +263,10 @@ class Soundd:
         written_frames += frames_to_write
         self.current_sound_frame += frames_to_write
 
-    return ret * dm_warning_volume(alert, alert_type, volume)
+    final_gain = dm_warning_volume(alert, alert_type, volume)
+    if alert in ENGAGE_VOLUME_ALERTS:
+      final_gain *= self.soundVolumeAdjustEngage
+    return ret * final_gain
 
   def callback(self, data_out: np.ndarray, frames: int, time, status) -> None:
     if status:
@@ -351,7 +359,8 @@ class Soundd:
 
         assert stream.active
 
-        self.soundVolumeAdjust = float(self.params.get_int("SoundVolumeAdjust"))/100.
+        self.soundVolumeAdjust = max(0.0, float(self.params.get_int("SoundVolumeAdjust")) / 100.0)
+        self.soundVolumeAdjustEngage = max(0.0, float(self.params.get_int("SoundVolumeAdjustEngage")) / 100.0)
 
 
 def main():

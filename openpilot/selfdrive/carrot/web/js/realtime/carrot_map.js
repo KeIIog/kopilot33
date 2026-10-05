@@ -19,7 +19,7 @@
   const LOCATION_MAX_AGE_MS = 5000;
   const EXPANDED_AUTO_HIDE_MS = 8000;
   // Quota guard windows (relaxed). Warmup is now effectively off so the
-  // dock appears the instant Carrot Vision goes active. The Kakao SDK
+  // dock appears the instant KO Vision goes active. The Kakao SDK
   // download itself naturally throttles repeated requests via HTTP cache.
   const VISION_WARMUP_MS = 0;              // load immediately when vision becomes active
   const RETRY_AFTER_MS = 6000;             // recover from transient iframe/network stalls

@@ -48,7 +48,7 @@ class CarrotWebDialog(Widget):
     text_width = 274 * scale
     gui_label(
       rl.Rectangle(text_x, content_y + 42 * scale, text_width, 52 * scale),
-      "Carrot Web",
+      "KO Web",
       int(38 * scale),
       rl.WHITE,
       alignment=TextAlignment.LEFT,

@@ -470,7 +470,7 @@ class WikiSettingsGeneratorTest(unittest.TestCase):
         "- 사용 설명서\n"
         "  - [설정 이해하기](https://example.com/settings.md)\n"
         "    - [버튼·프리셋 상세](https://example.com/buttons.md)\n"
-        "  - [[Carrot Web|Guide-Carrot-Web]]\n"
+        "  - [[KO Web|Guide-Carrot-Web]]\n"
       )
       (wiki / GENERATOR.SIDEBAR_NAME).write_text(
         original_sidebar,

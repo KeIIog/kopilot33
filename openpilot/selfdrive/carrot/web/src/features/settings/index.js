@@ -64,6 +64,7 @@ import { createSettingsStore } from "./store.js";
 import { createSettingValueCache } from "./value_cache.js";
 import { installSettingsExtensionRegistry } from "./extensions/registry.js";
 import { registerOnnxVisionSettingsExtension } from "./extensions/onnx_vision/index.js";
+import { registerKoDoorSettingsExtension } from "./extensions/ko_door/index.js";
 
 const installedTargets = new WeakMap();
 
@@ -87,6 +88,7 @@ export function installSettingsRuntimeFacade(target = globalThis, options = {}) 
   const aux = createSettingsAuxState(options.auxLoaders || createSettingsAuxLoaders(normalizedTarget));
   const extensions = installSettingsExtensionRegistry(normalizedTarget);
   registerOnnxVisionSettingsExtension(extensions);
+  registerKoDoorSettingsExtension(extensions);
   const documentation = createSettingDocumentationClient({
     fetchImpl: typeof normalizedTarget.fetch === "function" ? normalizedTarget.fetch.bind(normalizedTarget) : null,
     indexUrl: resolveSettingDocumentationIndexUrl(),

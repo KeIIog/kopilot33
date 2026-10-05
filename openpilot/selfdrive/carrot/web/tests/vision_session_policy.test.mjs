@@ -166,6 +166,6 @@ test("ownership release reconnects only an active requested session", () => {
 test("unknown lifecycle events fail loudly", () => {
   assert.throws(
     () => reduceVisionSessionState(createVisionSessionState(), "page-maybe"),
-    /Unknown Carrot Vision session event/,
+    /Unknown KO Vision session event/,
   );
 });

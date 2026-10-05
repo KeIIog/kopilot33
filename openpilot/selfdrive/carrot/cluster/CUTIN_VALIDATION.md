@@ -327,7 +327,7 @@ Outside every maintained window, it is stored in
 The slider writes both sensor values and the `T` processing mode to the
 user-local `carrotpilot/radar_validation.json`. `--prob` provides a one-run
 override for the selected sensor without replacing its saved value. Neither
-changes production Carrot Radar's fixed 0.30 corner and 0.67 front thresholds,
+changes production KO Radar's fixed 0.30 corner and 0.67 front thresholds,
 physical equations, or stored labels.
 `--motion-mode normal|front` chooses the
 initial mode; `--front-only` is a compatibility alias for front mode. Manual

@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  // Carrot Vision diagnostic recorder (enriched).
+  // KO Vision diagnostic recorder (enriched).
   //
   // Silently records into a memory ring buffer. Persistent/console capture is
   // opt-in with ?vision_diag=1 or carrot_vision_diag_enabled=1.
@@ -416,7 +416,7 @@
   function dump() {
     const conn = navigator.connection || {};
     const head = [
-      "# Carrot Vision diagnostic log",
+      "# KO Vision diagnostic log",
       "# exported: " + new Date().toISOString(),
       "# ua: " + navigator.userAgent,
       "# viewport: " + window.innerWidth + "x" + window.innerHeight + " dpr=" + window.devicePixelRatio,
@@ -559,7 +559,7 @@
 
   function dumpConsole() {
     return [
-      "# Carrot Vision browser console",
+      "# KO Vision browser console",
       "# exported: " + new Date().toISOString(),
       "# ua: " + navigator.userAgent,
       "# entries: " + consoleEntries.length,
@@ -700,7 +700,7 @@
     btn.id = "carrotDiagBtn";
     btn.type = "button";
     btn.textContent = "LOG⤓";
-    btn.setAttribute("aria-label", "Download Carrot Vision diagnostic log");
+    btn.setAttribute("aria-label", "Download KO Vision diagnostic log");
     const s = btn.style;
     s.position = "fixed";
     s.left = "8px";

@@ -1,4 +1,4 @@
-/* Carrot Vision compact HUD/overlay runtime.
+/* KO Vision compact HUD/overlay runtime.
  * Owns one compact websocket, latest display state, and HUD normalization.
  */
 var setCarrotVisionState = window.CarrotVisionSetState;

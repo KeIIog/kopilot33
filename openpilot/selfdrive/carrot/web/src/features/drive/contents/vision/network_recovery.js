@@ -43,7 +43,7 @@ function freezeSnapshot(state) {
 
 export function createVisionNetworkRecoveryController(options = {}) {
   if (typeof options.probe !== "function") {
-    throw new TypeError("Carrot Vision network recovery requires a probe function");
+    throw new TypeError("KO Vision network recovery requires a probe function");
   }
 
   const probe = options.probe;
