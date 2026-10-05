@@ -1,0 +1,25 @@
+{
+  "patch_version": "KO-v1.2",
+  "upstream": "https://github.com/ajouatom/openpilot.git",
+  "branch": "carrot-wip",
+  "base_sha": "e6a6284437a76c2d60bda75efa4cb2cf6e85ef07",
+  "local_branch": "ko-wip",
+  "youtube_driver_profile": {
+    "quality": 4,
+    "resolution": "854x480",
+    "fps": 20,
+    "video_kbps": 750
+  },
+  "t_follow": {
+    "standard_s": 1.55,
+    "relaxed_s": 1.85
+  },
+  "door_can": {
+    "built_in_frames": false,
+    "config": "/data/ko/door_can.json"
+  },
+  "not_auto_reconstructed": [
+    "exact prior huge DriverMonitoring2.INTERACTION_TIMEOUTS tuple",
+    "exact prior +0.80 m/s^3 positive-acceleration-only smoothing diff"
+  ]
+}
