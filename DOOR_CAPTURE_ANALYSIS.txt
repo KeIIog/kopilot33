@@ -1,0 +1,31 @@
+KOPilot door capture analysis
+=============================
+Source: door_logs.tgz.gz
+SHA256: 87504ef064f0921dbb18aec54dbdc81e59c667b1d3710a1037fee77867dc5f11
+
+Frames:
+  baseline: 82,245
+  lock:     81,888
+  unlock:   82,207
+
+Strong action-only candidate:
+  CAN address 0x3FF (1023), physical bus 0
+  0x3FF is absent from baseline.
+
+LOCK capture, bus 0:
+  t=7.014960  9b30010000000000
+  t=7.074211  9b30010000000000   (+59 ms)
+  t=7.098238  9b30010000000000   (+24 ms)
+
+UNLOCK capture, bus 0:
+  t=1.399934  2640010400000000
+  t=1.432305  7254011500000000   (+32 ms)
+  t=1.469127  7254011500000000   (+37 ms)
+  t=1.516506  7254011500000000   (+47 ms)
+
+The same frames also appear on src/bus 130 in the log. That is treated as a forwarded/returned copy, not as a transmission bus. Candidate injection uses bus 0 only.
+
+Supporting lock-state transitions were also observed on 0x411 (DOORS_SEATBELTS in the Hyundai CAN-FD DBC) and 0x414, confirming that the capture includes real lock/unlock state transitions.
+
+IMPORTANT:
+This evidence does NOT prove 0x3FF is an actuator command. It may be a request/event/feedback frame, and Panda safety or the vehicle can reject it. The candidate is intentionally disabled by default. Test only with ignition ON, Park, standstill, valid CAN, and openpilot disengaged. Never weaken Panda safety to force it through.

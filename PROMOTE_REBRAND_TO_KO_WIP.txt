@@ -1,0 +1,18 @@
+GitHub stable promotion
+=======================
+Verified source: ko-rebrand @ e4d48a534f53fb5c32ac477780d9846a856c3e3b
+Stable target:   ko-wip
+Test branch:     test
+
+The verified rebrand commit is a direct child of the old ko-wip commit.
+Recommended phone/GitHub workflow:
+1) Open repository KeIIog/kopilot33 on GitHub.
+2) Pull requests -> New pull request.
+3) base: ko-wip / compare: ko-rebrand.
+4) Create pull request and merge it into ko-wip.
+5) Confirm ko-wip contains the KOPilot rebrand changes.
+6) The v1.6 patch will create/push the new experimental branch as: test.
+
+Note: ChatGPT's current GitHub integration has read access here but branch/PR write
+operations return HTTP 403, so the GitHub-side promotion needs your authenticated
+GitHub session once. The local Comma patch can still create local ko-wip/test branches.
