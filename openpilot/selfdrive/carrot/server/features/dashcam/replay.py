@@ -155,7 +155,7 @@ def build_replay_timeline(events: Iterable[Any], expected_segment: int) -> tuple
       for event in service_events.values()
     ]
     if not first_times:
-      raise ValueError("rlog has no Carrot Vision display data")
+      raise ValueError("rlog has no KO Vision display data")
     base_log_mono_ns = min(first_times)
     timestamp_base_ns = 0
 

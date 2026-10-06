@@ -69,6 +69,8 @@ class H264FlvMuxer:
     self._audio_codec.bit_rate = AUDIO_BITRATE
     self._audio_codec.time_base = self._audio_time_base
     self._audio_codec.open()
+    self._audio_resampler = av.AudioResampler(format="fltp", layout="stereo", rate=AUDIO_RATE)
+    self._input_audio_pts = 0
     self._packet_index = 0
     self._audio_pts = 0
     self._last_video_ms = 0
@@ -100,13 +102,42 @@ class H264FlvMuxer:
         video_ms = self._last_video_ms + 1
       self._last_video_ms = video_ms
 
-      # keep the silent audio track filled up to the current video time so a
-      # dropped-frame gap stays A/V aligned
+      # If live microphone audio is late or absent, fill only the missing
+      # span with silence so the FLV timeline remains valid and A/V stays aligned.
       self._mux_silence_until(int(video_ms * AUDIO_RATE / 1000))
 
       frame_header = b"\x17" if access_unit.is_idr else b"\x27"
       self._write_tag(9, video_ms, frame_header + b"\x01\x00\x00\x00" + access_unit.avcc)
       self._packet_index += 1
+
+  def mux_audio(self, pcm_s16_mono: bytes, *, sample_rate: int = 16_000) -> None:
+    # Mux signed 16-bit mono microphone PCM into the YouTube AAC track.
+    with self._lock:
+      if self._closed:
+        raise RuntimeError("FLV muxer is closed")
+      if not pcm_s16_mono:
+        return
+
+      rate = max(8_000, int(sample_rate or 16_000))
+      samples = len(pcm_s16_mono) // 2
+      if samples <= 0:
+        return
+
+      frame = self._av.AudioFrame(format="s16", layout="mono", samples=samples)
+      frame.sample_rate = rate
+      frame.time_base = Fraction(1, rate)
+      frame.pts = self._input_audio_pts
+      self._input_audio_pts += samples
+      frame.planes[0].update(pcm_s16_mono[:samples * 2])
+
+      # micd publishes 16 kHz mono. YouTube receives 44.1 kHz stereo AAC.
+      for out_frame in self._audio_resampler.resample(frame):
+        out_frame.pts = self._audio_pts
+        out_frame.time_base = self._audio_time_base
+        out_frame.sample_rate = AUDIO_RATE
+        for packet in self._audio_codec.encode(out_frame):
+          self._write_audio_packet(packet)
+        self._audio_pts += int(out_frame.samples)
 
   def close(self) -> None:
     with self._lock:

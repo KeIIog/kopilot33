@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "source": "door_logs.tgz.gz",
+    "source_sha256": "87504ef064f0921dbb18aec54dbdc81e59c667b1d3710a1037fee77867dc5f11",
+    "status": "capture-derived candidate; validate only while ignition ON, Park, standstill, CAN valid, disengaged",
+    "note": "0x3FF was absent in baseline and appeared only around the physical lock/unlock button events. This is a replay candidate, not a guaranteed actuator command. Panda safety remains authoritative."
+  },
+  "lock": [
+    {"address": "0x3FF", "bus": 0, "data": "9b30010000000000", "delay_ms": 0},
+    {"address": "0x3FF", "bus": 0, "data": "9b30010000000000", "delay_ms": 59},
+    {"address": "0x3FF", "bus": 0, "data": "9b30010000000000", "delay_ms": 24}
+  ],
+  "unlock": [
+    {"address": "0x3FF", "bus": 0, "data": "2640010400000000", "delay_ms": 0},
+    {"address": "0x3FF", "bus": 0, "data": "7254011500000000", "delay_ms": 32},
+    {"address": "0x3FF", "bus": 0, "data": "7254011500000000", "delay_ms": 37},
+    {"address": "0x3FF", "bus": 0, "data": "7254011500000000", "delay_ms": 47}
+  ]
+}

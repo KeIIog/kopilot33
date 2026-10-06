@@ -39,7 +39,7 @@ function num(value) {
 //  vEgoKph, vSetKph, tfGap, gear, gearStep, speedLimitKph, isMetric, driveMode...
 // 속도류는 항상 kph로 옴 → isMetric=false면 mph 변환.
 // Exported for tests: the single normalization every HUD payload passes through,
-// shared identically by live (당근비전) and replay (both feed RAW_HUD_STATE →
+// shared identically by live (KO Vision) and replay (both feed RAW_HUD_STATE →
 // deriveCompactHudPayload → CarrotHudOverlay.update → mapPayload → widgets).
 export function mapPayload(p = {}) {
   const metric = p.isMetric !== false;

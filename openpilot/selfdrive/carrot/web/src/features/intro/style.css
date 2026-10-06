@@ -159,6 +159,19 @@
 .intro-lead b { color: var(--md-on-surface-var); font-weight: 700; }
 
 /* ── 로고 / 아이콘 ────────────────────────────────────────── */
+.intro-logo--kopilot {
+  display: grid;
+  place-items: center;
+  min-height: clamp(88px, 16vw, 132px);
+  font-size: clamp(32px, 6vw, 54px);
+  font-weight: 900;
+  letter-spacing: -0.055em;
+  line-height: 1;
+  color: var(--md-on-surface);
+  text-shadow: 0 12px 42px color-mix(in srgb, var(--md-primary) 32%, transparent);
+  white-space: nowrap;
+}
+
 .intro-logo {
   width: clamp(140px, 26vw, 200px);
   height: auto;

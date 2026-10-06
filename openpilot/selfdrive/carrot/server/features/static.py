@@ -42,7 +42,7 @@ _ASSET_RECOVERY_HTML: Final = """<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta http-equiv="refresh" content="1">
-  <title>Carrot Web</title>
+  <title>KO Web</title>
   <style>
     :root { color-scheme: dark; }
     body {
@@ -74,7 +74,7 @@ _ASSET_RECOVERY_HTML: Final = """<!doctype html>
 <body>
   <main role="status" aria-live="polite">
     <i aria-hidden="true"></i>
-    Carrot Web 업데이트 적용 중
+    KO Web 업데이트 적용 중
     <small>Applying update…</small>
   </main>
 </body>
@@ -148,7 +148,7 @@ def _build_bootstrap_payload() -> dict:  # noqa: DICT_OK - serialized mixed-shap
 
 def _inject_bootstrap(html: str) -> str:
   payload = json.dumps(_build_bootstrap_payload(), ensure_ascii=False).replace("</", "<\\/")
-  script = f'<script id="carrotBootstrap">window.__CARROT_BOOTSTRAP__ = {payload};</script>\n'
+  script = f'<script id="kopilotBootstrap">window.__KOPILOT_BOOTSTRAP__ = {payload}; window.__CARROT_BOOTSTRAP__ = window.__KOPILOT_BOOTSTRAP__;</script>\n'
   marker = "<head>"
   if marker in html:
     return html.replace(marker, marker + "\n  " + script, 1)

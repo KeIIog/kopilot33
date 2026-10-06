@@ -1,4 +1,4 @@
-"""Serve ONNX diagnostics through Carrot Web; inference stays in xiaoge_data."""
+"""Serve ONNX diagnostics through KO Web; inference stays in xiaoge_data."""
 
 from pathlib import Path
 from urllib.parse import urlsplit

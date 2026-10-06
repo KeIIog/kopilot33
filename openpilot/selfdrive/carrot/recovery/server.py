@@ -719,7 +719,7 @@ def _git_action(action: str, payload: dict) -> dict:
   if cmd is None:
     return {"ok": False, "error": "invalid action or missing parameters"}
   # Execute the entire recovery transaction under the same OS lock as startup
-  # and Carrot Web. The helper is standard-library-only and works without the
+  # and KO Web. The helper is standard-library-only and works without the
   # main web stack. It inspects abandoned index locks before running commands.
   cmd = " ".join([
     "python3", shlex.quote(str(REPO_ROOT / "common/repo_update.py")),

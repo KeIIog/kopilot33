@@ -182,6 +182,7 @@ class YouTubeLiveService:
     self._caption_injector = Cea608TimestampInjector()
     self._messaging: Any | None = None
     self._socket: Any | None = None
+    self._audio_socket: Any | None = None
     self._socket_source = ""
     self._socket_quality = 0
     self._active_source = ""
@@ -238,7 +239,7 @@ class YouTubeLiveService:
     if self._task is not None and not self._task.done():
       return
     self._stop_event.clear()
-    self._task = asyncio.create_task(self._run(), name="carrot-youtube-live")
+    self._task = asyncio.create_task(self._run(), name="kopilot-youtube-live")
 
   async def stop(self) -> None:
     self._stop_event.set()
@@ -658,6 +659,10 @@ class YouTubeLiveService:
         await self._enter_backoff(error, reason="RTMPS start failed")
         return
 
+    writer = self._writer
+    if writer is not None:
+      self._drain_audio(writer)
+
     data = self._caption_injector.inject(
       data,
       enabled=self._param_bool(YOUTUBE_TIMESTAMP_PARAM),
@@ -959,6 +964,46 @@ class YouTubeLiveService:
       self._socket = None
     return self._socket
 
+  def _get_audio_socket(self) -> Any | None:
+    if self._audio_socket is not None:
+      return self._audio_socket
+    messaging = self._get_messaging()
+    if messaging is None:
+      return None
+    try:
+      self._audio_socket = messaging.sub_sock("rawAudioData", conflate=False)
+    except Exception:
+      self._audio_socket = None
+    return self._audio_socket
+
+  def _drain_audio(self, writer: RtmpFrameWriter) -> None:
+    # Video continuity wins over audio when RTMP is congested. micd publishes
+    # one 50 ms mono int16 block at 16 kHz, so normally this drains 0-1 blocks.
+    if writer.pending_frames >= max(1, writer.capacity // 2):
+      return
+    messaging = self._get_messaging()
+    sock = self._get_audio_socket()
+    if messaging is None or sock is None:
+      return
+
+    for _ in range(8):
+      if writer.pending_frames >= max(1, writer.capacity // 2):
+        break
+      try:
+        msg = messaging.recv_one_or_none(sock)
+      except Exception:
+        break
+      if msg is None:
+        break
+      audio = getattr(msg, "rawAudioData", None)
+      if audio is None:
+        continue
+      pcm = bytes(getattr(audio, "data", b"") or b"")
+      sample_rate = int(getattr(audio, "sampleRate", 0) or 16_000)
+      if pcm and not writer.enqueue_audio(pcm, sample_rate=sample_rate):
+        # Audio is best-effort. Missing spans are replaced with silence.
+        break
+
   def _recv_frame(self) -> tuple[bytes, bytes, int | None, bool, int, int]:
     messaging = self._get_messaging()
     sock = self._get_socket()
@@ -1072,6 +1117,14 @@ class YouTubeLiveService:
     return True
 
   async def _stop_stream(self) -> None:
+    audio_socket = self._audio_socket
+    self._audio_socket = None
+    if audio_socket is not None:
+      try:
+        audio_socket.close()
+      except Exception:
+        pass
+
     transport = self._transport
     self._transport = None
     self._transport_connected = False

@@ -487,7 +487,7 @@
     if (stateText === "starting") return detail ? localizeStatusDetail(detail) : t("support_terminal_starting", "Starting...");
     if ([
       "Secure tunnel ready",
-      "Sending Carrot server notification",
+      "Sending KO server notification",
     ].includes(detail)) {
       return localizeStatusDetail(detail);
     }
@@ -536,7 +536,7 @@
       "Starting secure tunnel": ["support_terminal_detail_tunnel", "Starting secure tunnel"],
       "cloudflared unavailable": ["support_terminal_detail_unavailable", "cloudflared unavailable"],
       "Secure tunnel ready": ["support_terminal_detail_tunnel_ready", "Secure tunnel ready"],
-      "Sending Carrot server notification": ["support_terminal_detail_discord", "Sending Carrot server notification"],
+      "Sending KO server notification": ["support_terminal_detail_discord", "Sending KO server notification"],
       "Ready": ["support_terminal_detail_ready", "Ready"],
       "Start failed": ["support_terminal_detail_failed", "Start failed"],
     };

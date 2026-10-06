@@ -80,7 +80,7 @@ WEBRTCD_URL = "http://127.0.0.1:5001/stream"
 # Keep the interactive web terminal in its own tmux session. Reusing service
 # session names such as "carrot-web" makes Ctrl+C/exit affect the web service
 # itself instead of behaving like an independent SSH login shell.
-TMUX_WEB_SESSION = os.environ.get("CARROT_TMUX_WEB_SESSION", "carrot-terminal")
+TMUX_WEB_SESSION = os.environ.get("CARROT_TMUX_WEB_SESSION", "kopilot-terminal")
 TMUX_CAPTURE_LINES = 160
 TMUX_START_DIR = "/data/openpilot"
 

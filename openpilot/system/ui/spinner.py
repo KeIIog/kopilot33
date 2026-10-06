@@ -24,6 +24,7 @@ if gui_app.big_ui():
   IP_TOP_MARGIN = 36
   STATUS_FONT_SIZE = 48
   STATUS_LINE_MARGIN = 14
+  LOGO_FONT_SIZE = 58
 else:
   PROGRESS_BAR_WIDTH = 268
   PROGRESS_BAR_HEIGHT = 10
@@ -37,6 +38,7 @@ else:
   IP_TOP_MARGIN = 12
   STATUS_FONT_SIZE = 28
   STATUS_LINE_MARGIN = 4
+  LOGO_FONT_SIZE = 24
 DEGREES_PER_SECOND = 360.0  # one full rotation per second
 RECOVERY_PORT = 6999
 DARKGRAY = (55, 55, 55, 255)
@@ -68,7 +70,6 @@ def fit_single_line(text: str, font: rl.Font, font_size: float, max_width: float
 class Spinner(Widget):
   def __init__(self):
     super().__init__()
-    self._comma_texture = gui_app.texture("img_spinner_comma.png", TEXTURE_SIZE, TEXTURE_SIZE)
     self._spinner_texture = gui_app.texture("img_spinner_track.png", TEXTURE_SIZE, TEXTURE_SIZE, alpha_premultiply=True)
     self._rotation = 0.0
     self._progress: int | None = None
@@ -109,16 +110,27 @@ class Spinner(Widget):
 
     center = rl.Vector2(rect.width / 2.0, center_y)
     spinner_origin = rl.Vector2(TEXTURE_SIZE / 2.0, TEXTURE_SIZE / 2.0)
-    comma_position = rl.Vector2(center.x - TEXTURE_SIZE / 2.0, center.y - TEXTURE_SIZE / 2.0)
-
     delta_time = rl.get_frame_time()
     self._rotation = (self._rotation + DEGREES_PER_SECOND * delta_time) % 360.0
 
-    # Draw rotating spinner and static comma logo
+    # Draw the generic rotating track with a KO PILOT center mark.
     rl.draw_texture_pro(self._spinner_texture, rl.Rectangle(0, 0, TEXTURE_SIZE, TEXTURE_SIZE),
                         rl.Rectangle(center.x, center.y, TEXTURE_SIZE, TEXTURE_SIZE),
                         spinner_origin, self._rotation, rl.WHITE)
-    rl.draw_texture_v(self._comma_texture, comma_position, rl.WHITE)
+
+    logo_text = "KO PILOT"
+    logo_font = gui_app.font(FontWeight.PRETENDARD)
+    logo_font_size = LOGO_FONT_SIZE * FONT_SCALE
+    logo_size = rl.measure_text_ex(logo_font, logo_text, logo_font_size, 0.0)
+    draw_text_ex = getattr(rl, "_orig_draw_text_ex", rl.draw_text_ex)
+    draw_text_ex(
+      logo_font,
+      logo_text,
+      rl.Vector2(round(center.x - logo_size.x / 2.0), round(center.y - logo_size.y / 2.0)),
+      logo_font_size,
+      0.0,
+      rl.WHITE,
+    )
 
     # Display the progress bar or text based on user input
     if self._progress is not None:

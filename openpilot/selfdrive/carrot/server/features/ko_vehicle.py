@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +13,7 @@ from openpilot.common.params import Params
 from openpilot.selfdrive.pandad import can_list_to_can_capnp
 
 DOOR_CONFIG_PATH = Path(os.environ.get("KO_DOOR_CAN_CONFIG", "/data/ko/door_can.json"))
+DOOR_LOG_PATH = Path(os.environ.get("KO_DOOR_CONTROL_LOG", "/data/ko/door_control.jsonl"))
 
 
 def _live_state() -> dict[str, Any]:
@@ -38,14 +41,14 @@ def _live_state() -> dict[str, Any]:
   }
 
 
-def _load_frames(action: str) -> list[tuple[int, bytes, int]]:
+def _load_frames(action: str) -> list[tuple[int, bytes, int, int]]:
   if not DOOR_CONFIG_PATH.is_file():
     raise FileNotFoundError(str(DOOR_CONFIG_PATH))
   raw = json.loads(DOOR_CONFIG_PATH.read_text(encoding="utf-8"))
   items = raw.get(action)
   if not isinstance(items, list) or not items:
     raise ValueError(f"no verified '{action}' frames")
-  out: list[tuple[int, bytes, int]] = []
+  out: list[tuple[int, bytes, int, int]] = []
   for i, frame in enumerate(items):
     if not isinstance(frame, dict):
       raise ValueError(f"frame {i} is not an object")
@@ -53,14 +56,26 @@ def _load_frames(action: str) -> list[tuple[int, bytes, int]]:
     address = int(a, 0) if isinstance(a, str) else int(a)
     bus = int(frame.get("bus"))
     data = bytes.fromhex(str(frame.get("data", "")).replace(" ", ""))
+    delay_ms = int(frame.get("delay_ms", 0) or 0)
     if not (0 <= address <= 0x1FFFFFFF):
       raise ValueError(f"frame {i} address out of range")
     if not (0 <= bus <= 3):
       raise ValueError(f"frame {i} bus out of range")
     if not (1 <= len(data) <= 64):
       raise ValueError(f"frame {i} payload length invalid")
-    out.append((address, data, bus))
+    if not (0 <= delay_ms <= 1000):
+      raise ValueError(f"frame {i} delay_ms out of range")
+    out.append((address, data, bus, delay_ms))
   return out
+
+
+def _door_log(payload: dict[str, Any]) -> None:
+  try:
+    DOOR_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with DOOR_LOG_PATH.open("a", encoding="utf-8") as f:
+      f.write(json.dumps({"ts": time.time(), **payload}, ensure_ascii=False, separators=(",", ":")) + "\n")
+  except Exception:
+    pass
 
 
 async def status(request: web.Request) -> web.Response:
@@ -121,9 +136,14 @@ async def door_command(request: web.Request) -> web.Response:
     return web.json_response({"ok": False, "error": f"invalid door CAN config: {exc}"}, status=400)
   try:
     sock = messaging.pub_sock("sendcan")
-    sock.send(can_list_to_can_capnp(frames, msgtype="sendcan", valid=True))
+    for address, data, bus, delay_ms in frames:
+      if delay_ms > 0:
+        await asyncio.sleep(delay_ms / 1000.0)
+      sock.send(can_list_to_can_capnp([(address, data, bus)], msgtype="sendcan", valid=True))
   except Exception as exc:
+    _door_log({"ok": False, "action": action, "error": str(exc), "live": state})
     return web.json_response({"ok": False, "error": f"sendcan failed: {exc}"}, status=500)
+  _door_log({"ok": True, "action": action, "frames": len(frames), "live": state})
   return web.json_response({"ok": True, "action": action, "frames": len(frames), "live": state})
 
 

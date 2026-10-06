@@ -15,11 +15,11 @@ CarrotIntro.register({
   flow: true,
 
   render(el) {
-    const { t, ctx, assetUrl } = CarrotIntro;
+    const { t, ctx } = CarrotIntro;
     const CYCLE_MS = 1800;
 
     el.innerHTML = `
-      <img class="intro-logo" src="${assetUrl("img_spinner_comma.png")}" alt="KOPilot" />
+      <div class="intro-logo intro-logo--kopilot" role="img" aria-label="KOPilot">KO PILOT</div>
 
       <div class="intro-cycler" aria-hidden="true">
         ${CarrotIntroLangs.map(([code, , greeting]) =>

@@ -113,7 +113,7 @@ function renderFromCereal(state) {
   };
 }
 
-// 당근비전(라이브): EV 켜짐 + 레인모드 + 감속(카메라) 오버라이드.
+// KO비전(라이브): EV 켜짐 + 레인모드 + 감속(카메라) 오버라이드.
 test("live and replay traffic lights render from the active planner state", () => {
   const red = renderFromCereal({
     longitudinalPlan: { trafficState: 1 },

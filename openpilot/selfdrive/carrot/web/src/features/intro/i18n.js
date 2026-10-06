@@ -60,7 +60,7 @@ globalThis.CarrotIntroI18n = {
     legalAck: "확인했습니다",
 
     outTitle: "준비됐어요",
-    outSub: "궁금한 점은 언제든\n당근서버에 물어보세요.",
+    outSub: "궁금한 점은 언제든\nKO 서버에 물어보세요.",
     start: "시작하기",
     previewDone: "미리보기 닫기",
 
@@ -108,7 +108,7 @@ globalThis.CarrotIntroI18n = {
     legalAck: "I understand",
 
     outTitle: "You're all set",
-    outSub: "Questions? Just ask\non the Carrot server.",
+    outSub: "Questions? Just ask\non the KO server.",
     start: "Start",
     previewDone: "Close preview",
 

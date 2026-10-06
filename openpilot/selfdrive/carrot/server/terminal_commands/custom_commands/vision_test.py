@@ -14,7 +14,7 @@ def _print_help() -> None:
 
 @register_command(
   name="vision",
-  summary="주차 상태에서 당근 비전 카메라를 확인합니다.",
+  summary="주차 상태에서 KO Vision 카메라를 확인합니다.",
   usage="carrot vision <start|status|logs|stop> [--lines N]",
 )
 def run(args: list[str]) -> int:

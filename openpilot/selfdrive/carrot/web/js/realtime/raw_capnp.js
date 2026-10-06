@@ -1146,9 +1146,9 @@ carrotRawCapnpGlobal.CarrotRawCapnp = (() => {
       tfBars: tfGap,
       gear: rawHudGear(state),
       gearStep: rawHudGearStep(state),
-      // LFA(측면제어) 활성 = openpilot engaged 신호. 신규 HUD 당근 아이콘용.
+      // LFA(측면제어) 활성 = openpilot engaged 신호. 신규 HUD KO 아이콘용.
       lfaActive: Boolean(state?.selfdriveState?.enabled ?? controlsState?.enabled),
-      steeringAngleDeg: Number(carState?.steeringAngleDeg), // 클러스터: 당근 아이콘 조향각 회전
+      steeringAngleDeg: Number(carState?.steeringAngleDeg), // 클러스터: KO 아이콘 조향각 회전
       aEgo: Number(carState?.aEgo),                          // 종가속(accel 게이지)
       steerOutput: Number(controlsState?.torqueState?.lateralOutput), // 조향출력 -1..1 (steer 게이지)
       leftBlinker: Boolean(carState?.leftBlinker),           // 방향지시등

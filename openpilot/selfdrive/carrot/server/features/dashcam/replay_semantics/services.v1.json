@@ -77,13 +77,13 @@
     },
     "carrotNavi": {
       "domain": "carrot_navigation",
-      "purpose": "세션/신선도 메타와 차량, 현재/다음 안내, 차선, 속도/SDI, 신호, 교차로, 경로, 안내상태를 묶은 Carrot Navi v2 상태다.",
+      "purpose": "세션/신선도 메타와 차량, 현재/다음 안내, 차선, 속도/SDI, 신호, 교차로, 경로, 안내상태를 묶은 KO Navi v2 상태다.",
       "recommendedView": "중첩 상태/객체+지도",
       "privacy": "route_location"
     },
     "carrotNaviMedia": {
       "domain": "carrot_navigation_media",
-      "purpose": "교차로 등 Carrot Navi 미디어의 kind/name/sequence/timestamp/format/size/payload를 운반한다.",
+      "purpose": "교차로 등 KO Navi 미디어의 kind/name/sequence/timestamp/format/size/payload를 운반한다.",
       "recommendedView": "이미지/미디어+메타",
       "privacy": "route_media"
     },

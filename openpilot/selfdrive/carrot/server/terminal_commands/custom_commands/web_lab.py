@@ -15,7 +15,7 @@ def _print_status() -> None:
 
 @register_command(
   name="web-lab",
-  summary="Carrot Web 실험 기능의 잠금을 관리합니다.",
+  summary="KO Web 실험 기능의 잠금을 관리합니다.",
   usage="carrot web-lab <on|off|status>",
 )
 def run(args: list[str]) -> int:

@@ -13,7 +13,7 @@ APP_KEY = "carrot_navi_web_bridge"
 def _bridge(request: web.Request) -> CarrotNaviWebBridge:
   bridge = request.app.get(APP_KEY)
   if not isinstance(bridge, CarrotNaviWebBridge):
-    raise web.HTTPServiceUnavailable(text="Carrot Navi web bridge unavailable")
+    raise web.HTTPServiceUnavailable(text="KO Navi web bridge unavailable")
   return bridge
 
 
@@ -59,9 +59,9 @@ async def api_client_diagnostic(request: web.Request) -> web.Response:
   try:
     payload = json.loads(raw)
   except (json.JSONDecodeError, UnicodeDecodeError, TypeError, ValueError):
-    raise web.HTTPBadRequest(text="invalid Carrot Navi client diagnostic") from None
+    raise web.HTTPBadRequest(text="invalid KO Navi client diagnostic") from None
   if not isinstance(payload, dict):
-    raise web.HTTPBadRequest(text="Carrot Navi client diagnostic must be an object")
+    raise web.HTTPBadRequest(text="KO Navi client diagnostic must be an object")
   _bridge(request).record_client_diagnostic(request.remote or "-", payload)
   return web.json_response({"ok": True})
 
@@ -69,7 +69,7 @@ async def api_client_diagnostic(request: web.Request) -> web.Response:
 async def _serve_ws(request: web.Request, media: bool) -> web.WebSocketResponse:
   bridge = _bridge(request)
   if not bridge.stream_allowed(force=True):
-    raise web.HTTPConflict(text="Carrot Navi web stream is unavailable while Cluster HUD is active")
+    raise web.HTTPConflict(text="KO Navi web stream is unavailable while Cluster HUD is active")
   raw_client_id = str(request.query.get("client_id", "")).strip()[:128]
   client_id = f"client:{raw_client_id}" if raw_client_id else f"remote:{request.remote or '-'}"
   takeover = str(request.query.get("takeover", "0")).lower() in ("1", "true", "yes")

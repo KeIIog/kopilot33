@@ -12,7 +12,7 @@ class RtmpFrameWriter:
 
   def __init__(self, muxer: Any, *, max_frames: int, max_bytes: int = 4 * 1024 * 1024) -> None:
     self._muxer = muxer
-    self._queue: asyncio.Queue[tuple[bytes, bool] | None] = asyncio.Queue(maxsize=max(1, int(max_frames)))
+    self._queue: asyncio.Queue[tuple[str, bytes, int] | None] = asyncio.Queue(maxsize=max(1, int(max_frames)))
     self._max_bytes = max(1, int(max_bytes))
     self._pending_bytes = 0
     self._high_watermark_bytes = 0
@@ -72,9 +72,9 @@ class RtmpFrameWriter:
 
   def start(self) -> None:
     if self._task is None or self._task.done():
-      self._task = asyncio.create_task(self._run(), name="carrot-youtube-rtmp-writer")
+      self._task = asyncio.create_task(self._run(), name="kopilot-youtube-rtmp-writer")
 
-  def enqueue(self, payload: bytes, *, keyframe: bool) -> bool:
+  def _enqueue_item(self, kind: str, payload: bytes, value: int) -> bool:
     task = self._task
     self._last_rejection = ""
     if self._error:
@@ -83,13 +83,13 @@ class RtmpFrameWriter:
     if task is None or task.done():
       self._last_rejection = "RTMP writer is not running"
       return False
-    frame = bytes(payload)
-    next_pending_bytes = self._pending_bytes + len(frame)
+    data = bytes(payload)
+    next_pending_bytes = self._pending_bytes + len(data)
     if next_pending_bytes > self._max_bytes:
       self._last_rejection = f"RTMP frame backlog reached {self._max_bytes} bytes"
       return False
     try:
-      self._queue.put_nowait((frame, bool(keyframe)))
+      self._queue.put_nowait((kind, data, int(value)))
     except asyncio.QueueFull:
       self._last_rejection = f"RTMP frame backlog reached {self.capacity} frames"
       return False
@@ -97,6 +97,12 @@ class RtmpFrameWriter:
     self._high_watermark = max(self._high_watermark, self.pending_frames)
     self._high_watermark_bytes = max(self._high_watermark_bytes, self._pending_bytes)
     return True
+
+  def enqueue(self, payload: bytes, *, keyframe: bool) -> bool:
+    return self._enqueue_item("video", payload, int(bool(keyframe)))
+
+  def enqueue_audio(self, pcm_s16_mono: bytes, *, sample_rate: int) -> bool:
+    return self._enqueue_item("audio", pcm_s16_mono, max(8_000, int(sample_rate or 16_000)))
 
   async def stop(self) -> int:
     task = self._task
@@ -112,8 +118,10 @@ class RtmpFrameWriter:
       except asyncio.QueueEmpty:
         break
       if item is not None:
-        discarded += 1
-        self._pending_bytes = max(0, self._pending_bytes - len(item[0]))
+        kind, payload, _value = item
+        if kind == "video":
+          discarded += 1
+        self._pending_bytes = max(0, self._pending_bytes - len(payload))
       self._queue.task_done()
 
     if not task.done():
@@ -130,18 +138,25 @@ class RtmpFrameWriter:
       try:
         if item is None:
           return
-        payload, keyframe = item
+        kind, payload, value = item
         self._pending_bytes = max(0, self._pending_bytes - len(payload))
         started = time.monotonic()
         loop = asyncio.get_running_loop()
-        await loop.run_in_executor(
-          self._executor,
-          partial(self._muxer.mux, payload, keyframe=keyframe),
-        )
+        if kind == "audio":
+          await loop.run_in_executor(
+            self._executor,
+            partial(self._muxer.mux_audio, payload, sample_rate=value),
+          )
+        else:
+          await loop.run_in_executor(
+            self._executor,
+            partial(self._muxer.mux, payload, keyframe=bool(value)),
+          )
         elapsed_ms = max(0, int((time.monotonic() - started) * 1_000))
         self._last_write_ms = elapsed_ms
         self._max_write_ms = max(self._max_write_ms, elapsed_ms)
-        self._frames_written += 1
+        if kind == "video":
+          self._frames_written += 1
       except Exception as exc:
         self._error = str(exc)
         return

@@ -1,4 +1,4 @@
-/* 당근비전 AR opt-in gate.
+/* KO Vision AR opt-in gate.
  *
  * 설정이 꺼져 있으면 runtime 자체를 만들지 않는다. 이미 켜진 상태에서 설정을
  * 끄면 destroy()까지 호출해 data lease, Worker, canvas를 한 번에 해제한다.

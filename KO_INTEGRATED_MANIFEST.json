@@ -1,0 +1,22 @@
+{
+  "version": "v1.6-test",
+  "branch": "test",
+  "base_branch": "ko-wip",
+  "base_sha": "e4d48a534f53fb5c32ac477780d9846a856c3e3b",
+  "features": [
+    "YouTube Live real cabin microphone audio: rawAudioData 16 kHz mono -> 44.1 kHz stereo AAC",
+    "video-priority RTMP queue with silence fallback for dropped/missing audio",
+    "KO PILOT build/loading spinner and first-run intro mark",
+    "remaining user-visible Korean/English/Chinese Carrot branding swept to KOPilot/KO",
+    "kopilot-terminal default display/session name (legacy env key retained)",
+    "capture-derived 0x3FF door lock/unlock replay candidate, disabled by default",
+    "door sequence delay_ms support and /data/ko/door_control.jsonl attempt logging"
+  ],
+  "compatibility_preserved": [
+    "openpilot/selfdrive/carrot package path",
+    "Carrot* Params and existing API route identifiers",
+    "/data/carrot persisted-state path and legacy env keys",
+    "external carrotpilot.app service URLs where still required",
+    "legacy __CARROT_BOOTSTRAP__ alias (new __KOPILOT_BOOTSTRAP__ is authoritative)"
+  ]
+}

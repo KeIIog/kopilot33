@@ -32,7 +32,7 @@ const WORDS = {
     help: "Configure while stationary with cruise disengaged. Enabling a mapping captures this device's original touch, keyboard and volume input. Lane changes retain existing speed, blind-spot and steering conditions. Phones can pair; calls, audio and networking are not provided.",
     empty: "Put your device in pairing mode and scan. Disconnect it from its previous phone if needed.",
     pair: "Pair", connect: "Connect", disconnect: "Disconnect", forget: "Forget", paired: "Paired", connected: "Connected",
-    profile: "Input profile", generic: "Generic keyboard / HID", enabled: "Use Carrot mapping (capture original HID input)",
+    profile: "Input profile", generic: "Generic keyboard / HID", enabled: "Use KO Mapping (capture original HID input)",
     save: "Save mapping", saved: "Saved", test: "Learn / test keys (120s)", stop: "End test", waiting: "Preparing test…",
     testing: "Test mode: no vehicle commands. Press and release a button to see it below. New keys are added to the list automatically.",
     idle: "Waiting for input", blocked: "Setup requires a fresh stationary, disengaged state and the input service.",
