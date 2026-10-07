@@ -17,11 +17,15 @@ DOOR_LOG_PATH = Path(os.environ.get("KO_DOOR_CONTROL_LOG", "/data/ko/door_contro
 
 
 def _live_state() -> dict[str, Any]:
-  sm = messaging.SubMaster(["carState", "deviceState", "pandaStates", "selfdriveState"])
-  sm.update(250)
+  sm = messaging.SubMaster(["carState", "deviceState", "pandaStates", "selfdriveState", "carControl"])
+  deadline = time.monotonic() + 1.0
+  required = ("carState", "pandaStates", "selfdriveState", "carControl")
+  while time.monotonic() < deadline and not all(sm.seen.get(name, False) for name in required):
+    sm.update(100)
   cs = sm["carState"]
   ds = sm["deviceState"]
   ss = sm["selfdriveState"]
+  cc = sm["carControl"]
   pandas = sm["pandaStates"]
   try:
     ignition = any(bool(p.ignitionLine or p.ignitionCan) for p in pandas)
@@ -31,13 +35,20 @@ def _live_state() -> dict[str, Any]:
     in_park = cs.gearShifter == car.CarState.GearShifter.park
   except Exception:
     in_park = False
+  selfdrive_active = bool(getattr(ss, "active", False))
+  lat_active = bool(getattr(cc, "latActive", False))
+  long_active = bool(getattr(cc, "longActive", False))
   return {
     "started": bool(getattr(ds, "started", False)),
     "ignition": ignition,
     "park": in_park,
     "v_ego": float(getattr(cs, "vEgo", 999.0)),
     "can_valid": bool(getattr(cs, "canValid", False)),
-    "engaged": bool(getattr(ss, "enabled", False)),
+    "engaged": selfdrive_active or lat_active or long_active,
+    "selfdrive_enabled": bool(getattr(ss, "enabled", False)),
+    "selfdrive_active": selfdrive_active,
+    "lat_active": lat_active,
+    "long_active": long_active,
   }
 
 
@@ -112,7 +123,7 @@ async def door_command(request: web.Request) -> web.Response:
     return web.json_response({"ok": False, "error": "KO door control is disabled"}, status=403)
   state = _live_state()
   blocked = []
-  if not state["started"] or not state["ignition"]:
+  if not state["ignition"]:
     blocked.append("ignition_on_required")
   if not state["park"]:
     blocked.append("park_required")
