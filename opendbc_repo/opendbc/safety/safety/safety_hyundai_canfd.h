@@ -35,6 +35,7 @@ const CanMsg HYUNDAI_CANFD_HDA2_ALT_STEERING_TX_MSGS[] = {
 };
 
 const CanMsg HYUNDAI_CANFD_HDA2_LONG_TX_MSGS[] = {
+  {0x3FF, 0, 8},  // KOPILOT_V19_DOOR: LOCK/UNLOCK, further gated in tx_hook
   {0x10B, 2, 16}, // ALT2 button intent; consumed, never sent directly
   {0x50, 0, 16},  // LKAS
   {0x1CF, 0, 8},  // CRUISE_BUTTON
@@ -224,6 +225,20 @@ bool hyundai_canfd_buffered_fwd = false;
 const int HYUNDAI_PARAM_CANFD_CLUSTER_DIRECT_TX = 2048;
 bool hyundai_canfd_cluster_rx_forwarding = false;
 
+// KOPILOT_V19_DOOR: narrow body-control safety gate.
+const int HYUNDAI_PARAM_CANFD_DOOR_CONTROL = 4096;
+bool hyundai_canfd_door_control = false;
+bool hyundai_canfd_door_park = false;
+bool hyundai_canfd_door_park_seen = false;
+bool hyundai_canfd_door_wheels_seen = false;
+uint32_t hyundai_canfd_door_park_ts = 0U;
+uint32_t hyundai_canfd_door_wheels_ts = 0U;
+uint32_t hyundai_canfd_door_window_start_us = 0U;
+uint8_t hyundai_canfd_door_window_count = 0U;
+#define HYUNDAI_CANFD_DOOR_STATE_MAX_AGE_US 200000U
+#define HYUNDAI_CANFD_DOOR_BURST_WINDOW_US 250000U
+#define HYUNDAI_CANFD_DOOR_MAX_TX_PER_WINDOW 4U
+
 int hyundai_canfd_hda2_get_lkas_addr(void) {
   return hyundai_canfd_hda2_alt_steering ? 0x110 : 0x50;
 }
@@ -247,13 +262,13 @@ static uint32_t hyundai_canfd_get_checksum(const CANPacket_t* to_push) {
 
 typedef struct {
   int addr;
-  int bus;              // forwarding block ´ë»ó tx bus: 0 or 2
+  int bus;              // forwarding block ëŒ€ìƒ tx bus: 0 or 2
   int hz;
   uint32_t timeout_us;
   uint32_t last_tx_us;
 } CanfdTxState;
 
-// forwarding block¿ë: bus 0,2¸¸ »ç¿ë
+// forwarding blockìš©: bus 0,2ë§Œ ì‚¬ìš©
 CanfdTxState canfd_tx_states[] = {
   {0x50,  0, 100, 0U, 0U}, // 80:  LKAS
   {0x51,  0, 100, 0U, 0U}, // 81:  ADRV_0x51
@@ -461,7 +476,7 @@ static bool canfd_bfwd_pop(CanfdBufferedFwd* st, CANPacket_t* pkt) {
   st->head = (st->head + 1U) % CANFD_BFWD_MAX_QUEUE;
   st->count--;
 
-  // ¸¶Áö¸· Á¤»ó packet ÀúÀå
+  // ë§ˆì§€ë§‰ ì •ìƒ packet ì €ìž¥
   canfd_copy_packet(&st->last_pkt, pkt);
   st->has_last_pkt = true;
   st->reuse_left = CANFD_BFWD_REUSE_MAX;
@@ -490,6 +505,59 @@ static bool canfd_bfwd_reuse_last(CanfdBufferedFwd* st, CANPacket_t* pkt) {
 
 
 
+// KOPILOT_V19_DOOR protocol observed from physical LOCK/UNLOCK capture.
+// CRC-8: poly=0x1D, init=0xFF, xorout=0xFE over bytes 1..7.
+static uint8_t hyundai_canfd_door_crc8(const CANPacket_t *msg) {
+  uint8_t crc = 0xFFU;
+  for (int i = 1; i < 8; i++) {
+    crc ^= GET_BYTE(msg, i);
+    for (int bit = 0; bit < 8; bit++) {
+      crc = (crc & 0x80U) ? (uint8_t)((crc << 1U) ^ 0x1DU) : (uint8_t)(crc << 1U);
+    }
+  }
+  return crc ^ 0xFEU;
+}
+
+static bool hyundai_canfd_door_payload_valid(const CANPacket_t *msg) {
+  if ((GET_BUS(msg) != 0) || (GET_LEN(msg) != 8U)) return false;
+
+  const uint8_t cmd = GET_BYTE(msg, 1) & 0x0FU;
+  const uint8_t state = GET_BYTE(msg, 3);
+  const bool fixed = (GET_BYTE(msg, 2) == 0x01U) &&
+                     (GET_BYTE(msg, 4) == 0U) && (GET_BYTE(msg, 5) == 0U) &&
+                     (GET_BYTE(msg, 6) == 0U) && (GET_BYTE(msg, 7) == 0U);
+  const bool lock = (cmd == 0x0U) && (state == 0x00U);
+  const bool unlock = (cmd == 0x4U) && ((state == 0x05U) || (state == 0x15U));
+  const bool crc_ok = GET_BYTE(msg, 0) == hyundai_canfd_door_crc8(msg);
+  return fixed && (lock || unlock) && crc_ok;
+}
+
+static bool hyundai_canfd_door_rate_allowed(uint32_t now) {
+  if ((hyundai_canfd_door_window_start_us == 0U) ||
+      (get_ts_elapsed(now, hyundai_canfd_door_window_start_us) > HYUNDAI_CANFD_DOOR_BURST_WINDOW_US)) {
+    hyundai_canfd_door_window_start_us = now;
+    hyundai_canfd_door_window_count = 0U;
+  }
+  if (hyundai_canfd_door_window_count >= HYUNDAI_CANFD_DOOR_MAX_TX_PER_WINDOW) return false;
+  hyundai_canfd_door_window_count++;
+  return true;
+}
+
+static bool hyundai_canfd_door_tx_allowed(const CANPacket_t *msg) {
+  const uint32_t now = microsecond_timer_get();
+  const bool park_fresh = hyundai_canfd_door_park_seen &&
+                          (get_ts_elapsed(now, hyundai_canfd_door_park_ts) <= HYUNDAI_CANFD_DOOR_STATE_MAX_AGE_US);
+  const bool wheels_fresh = hyundai_canfd_door_wheels_seen &&
+                            (get_ts_elapsed(now, hyundai_canfd_door_wheels_ts) <= HYUNDAI_CANFD_DOOR_STATE_MAX_AGE_US);
+
+  if (!hyundai_canfd_door_control || !park_fresh || !wheels_fresh ||
+      !hyundai_canfd_door_park || vehicle_moving || controls_allowed ||
+      !hyundai_canfd_door_payload_valid(msg)) {
+    return false;
+  }
+  return hyundai_canfd_door_rate_allowed(now);
+}
+
 static void hyundai_canfd_rx_hook(const CANPacket_t *to_push) {
   int bus = GET_BUS(to_push);
   int addr = GET_ADDR(to_push);
@@ -500,6 +568,14 @@ static void hyundai_canfd_rx_hook(const CANPacket_t *to_push) {
   if (hyundai_camera_scc) pt_bus = 0;
 
   if (bus == pt_bus) {
+    // KOPILOT_V19_DOOR: 0x35 GEAR is already covered by common RX checksum/counter checks.
+    // Verified on this vehicle: 0=P, 5=D, 6=N, 7=R.
+    if ((addr == 0x35) && hyundai_ev_gas_signal && (GET_LEN(to_push) >= 25U)) {
+      hyundai_canfd_door_park = (GET_BYTE(to_push, 24) & 0x7U) == 0U;
+      hyundai_canfd_door_park_seen = true;
+      hyundai_canfd_door_park_ts = microsecond_timer_get();
+    }
+
     // driver torque
     if (addr == 0xea) {
       int torque_driver_new = ((GET_BYTE(to_push, 11) & 0x1fU) << 8U) | GET_BYTE(to_push, 10);
@@ -539,6 +615,8 @@ static void hyundai_canfd_rx_hook(const CANPacket_t *to_push) {
 
     // vehicle moving
     if (addr == 0xa0) {
+      hyundai_canfd_door_wheels_seen = true;
+      hyundai_canfd_door_wheels_ts = microsecond_timer_get();
       uint32_t fl = (GET_BYTES(to_push, 8, 2)) & 0x3FFFU;
       uint32_t fr = (GET_BYTES(to_push, 10, 2)) & 0x3FFFU;
       uint32_t rl = (GET_BYTES(to_push, 12, 2)) & 0x3FFFU;
@@ -597,6 +675,13 @@ static bool hyundai_canfd_tx_hook(const CANPacket_t *to_send_const) {
   bool tx = true;
   int addr = GET_ADDR(to_send);
   bool violation = false;
+
+  // KOPILOT_V19_DOOR: outer whitelist permits only 0x3FF/bus0/DLC8; this hook
+  // additionally requires opt-in, fresh P, fresh zero wheel-speed, controls off,
+  // exact LOCK/UNLOCK payload format, valid CRC, and a 4-frame burst limit.
+  if (addr == 0x3FF) {
+    return hyundai_canfd_door_tx_allowed(to_send);
+  }
 
   if (addr == 0x10B) {
     bool accepted = hyundai_alt2_set_request(to_send, microsecond_timer_get());
@@ -739,7 +824,7 @@ static int hyundai_canfd_fwd_hook(CANPacket_t* to_send) {
       CANPacket_t buffered_pkt;
       bool use_buffered = canfd_bfwd_pop(bfwd, &buffered_pkt);
 
-      // queue°¡ ºñ¾úÀ¸¸é ¸¶Áö¸· Á¤»ó°ªÀ» 1~2È¸ Àç»ç¿ë
+      // queueê°€ ë¹„ì—ˆìœ¼ë©´ ë§ˆì§€ë§‰ ì •ìƒê°’ì„ 1~2íšŒ ìž¬ì‚¬ìš©
       if (!use_buffered) {
         use_buffered = canfd_bfwd_reuse_last(bfwd, &buffered_pkt);
         if (use_buffered) {
@@ -804,6 +889,16 @@ static int hyundai_canfd_fwd_hook(CANPacket_t* to_send) {
 static safety_config hyundai_canfd_init(uint16_t param) {
   hyundai_alt2_reset();
   hyundai_canfd_cluster_reset();
+
+  // KOPILOT_V19_DOOR: fail closed until fresh P and wheel-speed frames arrive.
+  hyundai_canfd_door_control = GET_FLAG(param, HYUNDAI_PARAM_CANFD_DOOR_CONTROL);
+  hyundai_canfd_door_park = false;
+  hyundai_canfd_door_park_seen = false;
+  hyundai_canfd_door_wheels_seen = false;
+  hyundai_canfd_door_park_ts = 0U;
+  hyundai_canfd_door_wheels_ts = 0U;
+  hyundai_canfd_door_window_start_us = 0U;
+  hyundai_canfd_door_window_count = 0U;
 
   for (int i = 0; canfd_tx_states[i].addr > 0; i++) {
     canfd_tx_states[i].timeout_us = (uint32_t)(1000000.0 / canfd_tx_states[i].hz) + 20000U;

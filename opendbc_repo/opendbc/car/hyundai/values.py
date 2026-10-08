@@ -84,6 +84,7 @@ class HyundaiSafetyFlags(IntFlag):
   FCEV_GAS = 256
   ALT_LIMITS_2 = 512
   CANFD_CLUSTER_DIRECT_TX = 2048
+  CANFD_DOOR_CONTROL = 4096  # KOPILOT_V19_DOOR: gated 0x3FF body-control TX
 
 
 class HyundaiFlags(IntFlag):

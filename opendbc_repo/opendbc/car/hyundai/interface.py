@@ -239,6 +239,10 @@ class CarInterface(CarInterfaceBase):
 
     print(f"$$$$ enableBsm = {ret.enableBsm}")
 
+    # KOPILOT_V19_DOOR: opt-in door TX safety capability; requires reboot after toggling.
+    if (ret.flags & HyundaiFlags.CANFD) and params.get_bool("KoDoorControlEnabled"):
+      ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.CANFD_DOOR_CONTROL.value
+
     if ret.openpilotLongitudinalControl:
       ret.safetyConfigs[-1].safetyParam |= HyundaiSafetyFlags.LONG.value
     if ret.flags & HyundaiFlags.HYBRID:

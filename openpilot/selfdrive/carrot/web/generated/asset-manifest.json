@@ -27,7 +27,7 @@
       "kind": "bundle",
       "source": "src/entries/settings.js",
       "path": "js/generated/settings.js",
-      "hash": "fe300697ae9ceecb670d42732363ec84b5ea9d9ace606628e0cb63389c2f13a0"
+      "hash": "7b9d3f722fe38f0bf577b884ce2d2d2367d13e96e565ad4b05d4635d35bdaaeb"
     },
     {
       "id": "tools.runtime",
