@@ -7,6 +7,7 @@ from . import (
   dashcam,
   egpu_model,
   intro,
+  ko_auto_tune,
   ko_drive_log,
   ko_vehicle,
   mapbox_tokens,
@@ -38,6 +39,7 @@ def register_all(app: web.Application) -> None:
   static.register(app)
   intro.register(app)
   ko_drive_log.register(app)
+  ko_auto_tune.register(app)
   ko_vehicle.register(app)
   carrot_navi.register(app)
   stream.register(app)
