@@ -16,6 +16,8 @@ KNOWN_TOOL_ACTIONS = {
   "git_checkout",
   "git_log",
   "git_pull",
+  "git_push",
+  "git_push_undo",
   "git_remote_add",
   "git_remote_set",
   "git_reset",
@@ -26,7 +28,6 @@ KNOWN_TOOL_ACTIONS = {
   "rebuild_all",
   "reset_calib",
   "send_tmux_log",
-  "server_tmux_log",
   "shell_cmd",
 }
 

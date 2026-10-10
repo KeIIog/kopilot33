@@ -444,20 +444,13 @@ async def _run_git_pull(target_head: str) -> tuple[bool, bool, str]:
     _record_error("state_write_failed", "Unable to save automatic-update attempt")
     return False, False, ""
 
-  # Keep the existing hard-reset behavior, but never pull or reboot if it fails.
-  reset_rc, reset_out = await _git(["reset", "--hard"], RESET_TIMEOUT)
-  if reset_rc != 0:
-    if "index.lock" in reset_out and "File exists" in reset_out:
-      raise RepoBusyError(reset_out)
-    _record_error(
-      "reset_failed",
-      reset_out,
-      attempted_at=attempted_at,
-      old_head=old_head,
-      target_head=target_head,
-      reset_rc=reset_rc,
-    )
+  # Keep local SSH source edits: do not run reset --hard before auto-update.
+  dirty_rc, dirty = await _git(["status", "--porcelain", "--untracked-files=no"], GIT_INFO_TIMEOUT)
+  if dirty_rc or dirty.strip():
+    _record_error("local_changes", "Local source edits exist; auto-update skipped.",
+                  attempted_at=attempted_at, old_head=old_head, target_head=target_head)
     return False, False, ""
+  reset_rc = 0
 
   # Apply only the selected branch's pinned commit. FETCH_HEAD can be rewritten
   # by another fetch and must never determine which branches get merged.
@@ -526,10 +519,7 @@ async def _run_git_pull(target_head: str) -> tuple[bool, bool, str]:
     write_git_pull_time()
   except Exception:
     pass
-  try:
-    await _notify_cwp(old_head)
-  except Exception as exc:
-    print(f"[auto_update] notify skipped: {exc}", flush=True)
+  # KO privacy: do not send externally observable update notifications.
   return True, True, new_head
 
 

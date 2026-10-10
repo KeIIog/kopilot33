@@ -333,6 +333,8 @@
                 <span>git pull</span>
                 <span id="gitPullBadge" class="git-pull-btn__badge" hidden aria-label="pending commits">0</span>
               </button>
+              <button id="btnGitPush" class="btn" type="button">git push</button>
+              <button id="btnGitPushUndo" class="btn btn--danger" type="button">undo push</button>
               <button id="btnGitSync" class="btn">git sync</button>
               <button id="btnGitReset" class="btn">git reset</button>
               <button id="btnGitLog" class="btn">git log</button>
@@ -355,7 +357,6 @@
               <button id="btnDeviceLang" class="btn" hidden style="display:none;">Device Lang</button>
               <button id="btnResetCalib" class="btn btn--danger">Reset Calib</button>
               <button id="btnSendTmuxLog" class="btn">capture tmux</button>
-              <button id="btnSendTmuxServerLog" class="btn">send tmux</button>
               <button id="btnDeleteVideos" class="btn btn--danger">delete all videos</button>
               <button id="btnDeleteLogs" class="btn btn--danger">delete all logs</button>
               <button id="btnRebuildAll" class="smallBtn btn--danger">Rebuild All</button>
@@ -433,7 +434,6 @@
           <div class="terminal-toolbar">
             <div id="terminalSessionMeta" class="terminal-sessionMeta">IP</div>
             <div class="terminal-toolbar__actions">
-              <button id="btnSupportTerminalOpen" class="smallBtn terminal-support-open" type="button">Support</button>
               <button id="btnTerminalReconnect" class="smallBtn" type="button">Reconnect</button>
             </div>
           </div>
@@ -980,6 +980,7 @@
   <script src="/js/pages/setting_device.js"></script>
   <script src="/js/realtime/web_sound.js"></script>
   <script src="/js/generated/tools.js"></script>
+  <script src="/js/ko_git_push.js?v=3"></script>
   <script src="/js/pages/branch.js"></script>
   <script src="/js/generated/logs.js"></script>
   <script src="/js/vendor/xterm-addon-shim.js?v=1"></script>
@@ -988,7 +989,6 @@
   <script src="/js/vendor/xterm-addon-canvas.js?v=005"></script>
   <script src="/js/generated/terminal.js"></script>
   <script src="/js/generated/terminal-shared.js"></script>
-  <script src="/js/generated/terminal-support.js"></script>
   <script src="/js/realtime/mini_hud_model.js"></script>
   <script src="/js/realtime/mini_hud_mode.js"></script>
   <script src="/js/realtime/mini_hud.js"></script>

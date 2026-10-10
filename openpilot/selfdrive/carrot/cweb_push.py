@@ -264,6 +264,8 @@ class CwebPushReporter:
 
 
 def main() -> None:
+  print('[cweb_push] disabled by KO privacy policy', flush=True)
+  return
   parser = argparse.ArgumentParser()
   parser.add_argument("--once", action="store_true", help="run one stable-IP report check and exit")
   parser.add_argument("--dry-run", action="store_true", help="print payload without POSTing")

@@ -33,7 +33,7 @@ async def api_setting_popular_values_refresh(request: web.Request) -> web.Respon
   session = request.app.get("http")
   if session is None:
     return web.json_response(read_popular_values_memory())
-  cache = await refresh_popular_values_once(session, upload=True)
+  cache = await refresh_popular_values_once(session, upload=False)
   return web.json_response(cache)
 
 

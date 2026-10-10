@@ -1,4 +1,6 @@
 import asyncio
+import ipaddress
+from urllib.parse import urlsplit
 import time
 import uuid
 
@@ -12,6 +14,23 @@ from .actions import validate_action
 from .dispatcher import dispatch_sync, run_tool_job
 
 
+def _local_git_write_allowed(request: web.Request, action: object) -> bool:
+  if str(action or "") not in ("git_push", "git_push_undo"):
+    return True
+  origin = request.headers.get("Origin", "")
+  if origin:
+    parsed = urlsplit(origin)
+    same_origin = parsed.scheme in ("http", "https") and parsed.netloc == request.host
+  else:
+    same_origin = request.headers.get("Sec-Fetch-Site") == "same-origin"
+  try:
+    address = ipaddress.ip_address(request.remote or "")
+    private_peer = address.is_private or address.is_loopback
+  except ValueError:
+    private_peer = False
+  return bool(same_origin and private_peer)
+
+
 async def api_tools_start(request: web.Request) -> web.Response:
   try:
     body = await request.json()
@@ -19,6 +38,8 @@ async def api_tools_start(request: web.Request) -> web.Response:
     return web.json_response({"ok": False, "error": "invalid json"}, status=400)
 
   action = body.get("action")
+  if not _local_git_write_allowed(request, action):
+    return web.json_response({"ok": False, "error": "Git writes require a local same-origin browser"}, status=403)
   action_error = validate_action(action)
   if action_error:
     error, error_code = action_error
@@ -93,6 +114,8 @@ async def api_tools(request: web.Request) -> web.Response:
     body = await request.json()
   except Exception:
     return web.json_response({"ok": False, "error": "invalid json"}, status=400)
+  if not _local_git_write_allowed(request, body.get("action")):
+    return web.json_response({"ok": False, "error": "Git writes require a local same-origin browser"}, status=403)
   return await dispatch_sync(request, body)
 
 

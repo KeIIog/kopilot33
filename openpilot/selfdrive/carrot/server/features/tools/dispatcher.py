@@ -35,6 +35,7 @@ from ...services.git_state import did_git_pull_update, write_git_pull_time
 from ...services.git_status import clear_git_status_cache
 from ...services.params import HAS_PARAMS, Params, ParamKeyType, get_all_param_values_for_backup
 from . import jobs
+from . import git_operations
 from .actions import normalize_action, validate_action, validate_shell_argv
 
 
@@ -294,17 +295,27 @@ async def _run_tool_job(job: Dict[str, Any]) -> None:
       jobs.finish(job, ok=False, result={"ok": False, "error": error, "error_code": error_code}, error=error, error_code=error_code)
       return
 
+    if action in ("git_push", "git_push_undo"):
+      jobs.progress(job, message=action, current=1, total=1)
+      try:
+        result = await asyncio.to_thread(git_operations.push if action == "git_push" else git_operations.undo_push)
+        clear_git_status_cache()
+        jobs.append(job, result.get("out", ""))
+        jobs.finish(job, ok=True, result=result)
+      except git_operations.GitWebError as exc:
+        jobs.finish(job, ok=False, result={"ok": False, "error": str(exc), "error_code": "GIT_PUSH_BLOCKED"})
+      return
+
     if action == "git_pull":
       rc_config, out_config, target_head = await run_locked_thread(prepare_git_pull, repo_dir)
       jobs.append(job, out_config + "\n")
       if rc_config:
         jobs.finish(job, ok=False, result=jobs.result_from_log(job, rc_config))
         return
-      jobs.progress(job, message="git reset --hard", current=1, total=2)
-      jobs.append(job, "$ git reset --hard\n")
-      rc_reset = await jobs.stream_exec(job, ["git", "reset", "--hard"], cwd=repo_dir, timeout=120)
-      if rc_reset != 0:
-        jobs.finish(job, ok=False, result=jobs.result_from_log(job, rc_reset))
+      # Never discard SSH edits with reset --hard on the web Pull button.
+      rc_dirty, dirty = await jobs.capture_exec(["git", "status", "--porcelain", "--untracked-files=no"], cwd=repo_dir, timeout=15)
+      if rc_dirty or dirty.strip():
+        jobs.finish(job, ok=False, result={"ok": False, "error": "Local SSH edits exist; push or stash before pull.", "error_code": "GIT_DIRTY"})
         return
 
       rc_before, before_out = await jobs.capture_exec(["git", "rev-parse", "HEAD"], cwd=repo_dir, timeout=10)
@@ -738,13 +749,6 @@ async def _run_tool_job(job: Dict[str, Any]) -> None:
       jobs.finish(job, ok=True, result=result)
       return
 
-    if action == "server_tmux_log":
-      jobs.progress(job, message="send tmux", current=1, total=1)
-      params = Params()
-      params.put_nonblocking("CarrotException", "tmux_send")
-      jobs.finish(job, ok=True, result={"ok": True, "out": "tmux send triggered"})
-      return
-
     if action == "backup_settings":
       if not HAS_PARAMS or ParamKeyType is None:
         jobs.finish(
@@ -894,7 +898,18 @@ async def _dispatch_sync(request: web.Request, body: Dict[str, Any]) -> web.Resp
   try:
     REPO_DIR = "/data/openpilot"
 
+    if action in ("git_push", "git_push_undo"):
+      try:
+        result = await asyncio.to_thread(git_operations.push if action == "git_push" else git_operations.undo_push)
+        clear_git_status_cache()
+        return web.json_response(result)
+      except git_operations.GitWebError as exc:
+        return web.json_response({"ok": False, "error": str(exc), "error_code": "GIT_PUSH_BLOCKED"}, status=409)
+
     if action == "git_pull":
+      dirty_rc, dirty = run(["git", "status", "--porcelain", "--untracked-files=no"], cwd=REPO_DIR)
+      if dirty_rc or dirty.strip():
+        return web.json_response({"ok": False, "error": "Local SSH edits exist; push or stash before pull.", "error_code": "GIT_DIRTY"}, status=409)
       rc_config, out_config, target_head = await run_locked_thread(prepare_git_pull, REPO_DIR)
       clear_git_status_cache()
       if rc_config != 0:
@@ -1209,11 +1224,6 @@ async def _dispatch_sync(request: web.Request, body: Dict[str, Any]) -> web.Resp
         "out": "tmux log captured",
         "file": "/download/tmux.log",
       })
-
-    if action == "server_tmux_log":
-      params = Params()
-      params.put_nonblocking("CarrotException", "tmux_send")
-      return web.json_response({"ok": True, "out": "tmux send triggered"})
 
     if action == "backup_settings":
       if not HAS_PARAMS or ParamKeyType is None:

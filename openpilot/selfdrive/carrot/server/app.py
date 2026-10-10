@@ -10,6 +10,7 @@ Wires the aiohttp Application together:
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import time
 import traceback
 
@@ -25,7 +26,6 @@ from .services.auto_update import auto_update_loop
 from .services.git_status import git_status_loop
 from .services.heartbeat import heartbeat_loop
 from .services.params import HAS_PARAMS, Params
-from .services.popular_values import start_popular_value_upload
 from .services.settings import get_settings_cached
 from .services.static_assets import create_static_cache_middleware, start_precompress
 
@@ -33,6 +33,18 @@ VISION_DIAG_UPLOAD_MAX_BYTES = 16 * 1024 * 1024
 
 
 # ===== request log middleware =====
+@web.middleware
+async def privacy_lan_only_mw(request, handler):
+  # Reject public-WAN clients before serving any UI, log or terminal endpoint.
+  try:
+    peer = ipaddress.ip_address(request.remote or "")
+  except ValueError:
+    raise web.HTTPForbidden(text="KO Web is local-network only")
+  if not (peer.is_private or peer.is_loopback):
+    raise web.HTTPForbidden(text="KO Web is local-network only")
+  return await handler(request)
+
+
 @web.middleware
 async def log_mw(request, handler):
   ua = request.headers.get("User-Agent", "")
@@ -112,11 +124,9 @@ async def on_startup(app: web.Application) -> None:
   app["realtime_broker_poll_lock"] = asyncio.Lock()
   app["realtime_camera_hub"] = CameraWsHub(messaging)
   app["realtime_raw_hub"] = RawWsHub(messaging)
-  if HAS_PARAMS:
-    app["hb_task"] = asyncio.create_task(heartbeat_loop(app))
+  # KO privacy: no automatic heartbeat to third-party operator.
   app["git_status_task"] = asyncio.create_task(git_status_loop())
   app["auto_update_task"] = asyncio.create_task(auto_update_loop())
-  app["popular_value_upload_task"] = start_popular_value_upload(app)
   app["malloc_trim_task"] = asyncio.create_task(_malloc_trim_loop(app))
   app["settings_warm_task"] = asyncio.create_task(_warm_settings_cache())
   app["precompress_task"] = start_precompress(str(WEB_DIR))
@@ -218,7 +228,7 @@ def make_app() -> web.Application:
   # keep their settings instead of seeing defaults once.
   migrate_legacy_carrot_state()
   app = web.Application(
-    middlewares=[log_mw, create_static_cache_middleware(str(WEB_DIR))],
+    middlewares=[privacy_lan_only_mw, log_mw, create_static_cache_middleware(str(WEB_DIR))],
     client_max_size=VISION_DIAG_UPLOAD_MAX_BYTES,
   )
   app.on_startup.append(on_startup)

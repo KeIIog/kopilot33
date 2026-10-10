@@ -61,7 +61,7 @@ NAVI_IMAGE_PARAM = "CarrotNaviImage"
 NAVI_IMAGE_BASE64_MAX_CHARS = 6 * 1024 * 1024
 NAVI_ROUTE_MAX_POINTS = 4096
 NAVI_ROUTE_SUMMARY_MAX_SCAN = 20000
-AUTO_ONROAD_DIAGNOSTICS = os.environ.get("CARROT_AUTO_ONROAD_DIAGNOSTICS", "1").strip().lower() in ("1", "true", "yes", "on")
+AUTO_ONROAD_DIAGNOSTICS = False  # KO privacy: never auto-upload onroad logs
 BROADCAST_INTERVAL = 1.0
 BROADCAST_REMOTE_INTERVAL = 0.2
 BROADCAST_NETWORK_ERROR_RETRY_INTERVAL = 5.0
@@ -69,7 +69,7 @@ BROADCAST_NETWORK_ERROR_LOG_INTERVAL = 30.0
 AUTO_ONROAD_TMUX_DELAY_SECONDS = float(os.environ.get("CARROT_AUTO_ONROAD_TMUX_DELAY_SECONDS", "60"))
 CARROT_CAN_ERROR_TMUX_DELAY_SECONDS = float(os.environ.get("CARROT_CAN_ERROR_TMUX_DELAY_SECONDS", "5"))
 CARROT_EXCEPTION_UPLOAD_RETRY_SECONDS = 60.0
-CARROT_EXCEPTION_TMUX_REASONS = ("exception", "log", "tmux_send", "can_error", "spi_error", "egpu_error")
+CARROT_EXCEPTION_TMUX_REASONS = ()  # KO privacy: no exception upload triggers
 DISCORD_TMUX_FILE_MAX_BYTES = 8 * 1024 * 1024
 EXCEPTION_DISCORD_WEBHOOK_KEY = b"carrot-exception-v1"
 EXCEPTION_DISCORD_WEBHOOK_OBFUSCATED = (
@@ -887,6 +887,7 @@ class CarrotMan:
     return response
 
   def send_tmux_web(self, tmux_why, send_settings=False):
+    return None  # Disabled: operator-side TMUX upload.
     try:
       try:
         upload_settings = read_web_settings()
@@ -905,6 +906,7 @@ class CarrotMan:
       return None
 
   def send_tmux_carrot_logs(self, tmux_why, send_settings=False):
+    return None  # Disabled: independent forum/Discord copy.
     """Send the independent copy consumed by the Discord carrot_logs forum."""
     try:
       payload = self._tmux_upload_payload(tmux_why)
@@ -999,6 +1001,7 @@ class CarrotMan:
     return "\n".join(lines)[:1900]
 
   def send_tmux_discord(self, tmux_why, web_ok=False, web_response=None, send_settings=False):
+    return False  # Disabled: Discord logging webhook.
     url = self._tmux_discord_webhook_url()
     if not url:
       return False
@@ -1267,31 +1270,9 @@ class CarrotMan:
             else:
               pending_tmux_next_attempt_at = now + CARROT_EXCEPTION_UPLOAD_RETRY_SECONDS
         elif 'echo_cmd' in json_obj:
-          try:
-            result = subprocess.run(json_obj['echo_cmd'], shell=True, capture_output=True, text=False)
-            exitStatus = result.returncode
-            try:
-              stdout = result.stdout.decode('utf-8')
-              stderr = result.stderr.decode('utf-8')
-            except UnicodeDecodeError:
-              stdout = result.stdout.decode('euc-kr', 'ignore')
-              stderr = result.stderr.decode('euc-kr', 'ignore')
-
-            echo = json.dumps({"echo_cmd": json_obj['echo_cmd'], "exitStatus": exitStatus, "result": stdout, "error": stderr})
-          except Exception as e:
-            echo = json.dumps({"echo_cmd": json_obj['echo_cmd'], "exitStatus": exitStatus, "result": "", "error": f"exception error: {str(e)}"})
-          #print(echo)
-          socket.send(echo.encode())
+          socket.send(json.dumps({'result': 'disabled', 'error': 'remote shell disabled'}).encode())
         elif 'tmux_send' in json_obj:
-          tmux_created = self.make_tmux_data()
-          web_response = self.send_tmux_web("tmux_send") if tmux_created else None
-          web_ok = web_response is not None and getattr(web_response, "ok", False)
-          carrot_logs_response = self.send_tmux_carrot_logs("tmux_send") if tmux_created else None
-          carrot_logs_ok = carrot_logs_response is not None and getattr(carrot_logs_response, "ok", False)
-          discord_ok = self.send_tmux_discord("tmux_send", web_ok, web_response) if tmux_created else False
-          result = "success" if web_ok or carrot_logs_ok or discord_ok else "failed"
-          echo = json.dumps({"tmux_send": True, "result": result, "web_ok": web_ok, "carrot_logs_ok": carrot_logs_ok, "discord_ok": discord_ok})
-          socket.send(echo.encode())
+          socket.send(json.dumps({'tmux_send': True, 'result': 'disabled'}).encode())
       except Exception as e:
         print(f"carrot_cmd_zmq error: {e}")
         socket.close()

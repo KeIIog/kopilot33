@@ -126,7 +126,7 @@ def manager_init() -> UpdateStatus:
     os.environ['CLEAN'] = '1'
 
   # init logging
-  sentry.init(sentry.SentryProject.SELFDRIVE)
+  # KO privacy: do not initialize remote Sentry exception capture.
   cloudlog.bind_global(dongle_id=dongle_id,
                        version=build_metadata.openpilot.version,
                        origin=build_metadata.openpilot.git_normalized_origin,

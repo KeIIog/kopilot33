@@ -20,7 +20,6 @@ from . import (
   ssh_keys,
   static,
   stream,
-  support_terminal,
   system,
   terminal,
   tools,
@@ -43,7 +42,6 @@ def register_all(app: web.Application) -> None:
   ko_vehicle.register(app)
   carrot_navi.register(app)
   stream.register(app)
-  support_terminal.register(app)
   ws.register(app)
   settings.register(app)
   params.register(app)
