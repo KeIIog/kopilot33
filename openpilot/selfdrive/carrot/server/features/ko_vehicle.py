@@ -321,98 +321,12 @@ async def _run_door_experiment(action: str) -> web.Response:
   return await ko_door_probe.record_one_experiment(action, _run_door_experiment_v24)
 
 
+# KO_DOOR_PASSIVE_V252: disable previous unverified 0x3FF actuator trials.
 async def door_command(request: web.Request) -> web.Response:
-  # KO_DOOR_EXPERIMENT_V24: off-by-default opt-in, do not bypass Panda Safety.
-  try:
-    _ko_exp_body = await request.json()
-  except Exception:
-    _ko_exp_body = {}
-  if (isinstance(_ko_exp_body, dict) and _ko_exp_body.get('experimental') is True and
-      _ko_exp_body.get('confirmation') == 'ONE_SHOT_PARKED_3FF'):
-    _ko_act = request.match_info.get('action', '').strip().lower()
-    if _ko_act not in ('lock','unlock'):
-      return web.json_response({'ok':False,'error':'invalid action'},status=400)
-    return await _run_door_experiment(_ko_act)
-  # KO_DOOR_STATUS_V2: block unverified 0x3FF actuation; retain original TX code for later validation.
-  action = request.match_info.get("action", "").strip().lower()
-  if action not in ("lock", "unlock"):
-    return web.json_response({"ok": False, "error": "action must be lock or unlock"}, status=400)
-  try:
-    lock_status = await asyncio.to_thread(_read_ko_door_lock_state)
-  except Exception:
-    lock_status = {"state": "unknown", "locked": None, "corroborated": False}
-  return web.json_response({"ok": False, "action": action,
-                            "error": "door_actuation_protocol_unverified",
-                            "transmitted": False, "door_actuation_available": False,
-                            "door_state": lock_status}, status=409)
-  action = request.match_info.get("action", "").strip().lower()
-  if action not in ("lock", "unlock"):
-    return web.json_response({"ok": False, "error": "action must be lock or unlock"}, status=400)
-
-  try:
-    body = await request.json()
-  except Exception:
-    body = {}
-
-  params = Params()
-  if not params.get_bool("KoDoorControlEnabled"):
-    return web.json_response({"ok": False, "error": "KO door control is disabled"}, status=403)
-
-  state = _live_state()
-  blocked = []
-  if not state["ignition"]:
-    blocked.append("ignition_on_required")
-  if not state["park"]:
-    blocked.append("park_required")
-  if abs(state["v_ego"]) > 0.1:
-    blocked.append("standstill_required")
-  if not state["can_valid"]:
-    blocked.append("can_valid_required")
-  if state["engaged"]:
-    blocked.append("disengage_required")
-  if state["panda_controls_allowed"]:
-    blocked.append("panda_controls_allowed_must_be_false")
-  if not state["door_safety_enabled"]:
-    blocked.append("door_safety_flag_not_active_reboot_required")
-  if blocked:
-    return web.json_response({"ok": False, "blocked": blocked, "live": state}, status=409)
-
-  async with _DOOR_COMMAND_LOCK:
-    try:
-      counter = _next_counter(body.get("counter"))
-      frames = _build_frames(action, counter)
-    except Exception as exc:
-      return web.json_response({"ok": False, "error": str(exc)}, status=400)
-
-    rx = messaging.sub_sock("can", conflate=False, timeout=50)
-    payloads = {data for _, data, _, _ in frames}
-    try:
-      sock = _get_send_sock()
-      for address, data, bus, delay_ms in frames:
-        if delay_ms > 0:
-          await asyncio.sleep(delay_ms / 1000.0)
-        sock.send(can_list_to_can_capnp([(address, data, bus)], msgtype="sendcan", valid=True))
-      tx_result = await asyncio.to_thread(_collect_tx_returns, rx, payloads)
-    except Exception as exc:
-      _door_log({"ok": False, "action": action, "counter": counter, "error": str(exc), "live": state})
-      return web.json_response({"ok": False, "error": f"sendcan failed: {exc}"}, status=500)
-
-    # Advance only after the request was emitted. The explicit counter path is
-    # also persisted so subsequent Web commands continue from the same value.
-    _write_counter(counter)
-    payload_hex = [data.hex() for _, data, _, _ in frames]
-    result = {
-      "ok": tx_result["status"] == "returned",
-      "action": action,
-      "counter": counter,
-      "frames": len(frames),
-      "payloads": payload_hex,
-      "panda_tx": tx_result,
-      "live": state,
-    }
-    _door_log(result)
-    status_code = 200 if result["ok"] else 409
-    return web.json_response(result, status=status_code)
+  action=request.match_info.get('action','').strip().lower()
+  return web.json_response({'ok':False,'action':action,
+    'error':'unverified_0x3FF_sender_retired_use_physical_capture',
+    'transmitted':False,'can_transmitted':False},status=409)
 
 
 def register(app: web.Application) -> None:
@@ -423,4 +337,6 @@ def register(app: web.Application) -> None:
   from . import ko_door_probe
   app.router.add_get('/api/ko/door/probe/status', ko_door_probe.get_probe_status)
   app.router.add_get('/api/ko/door/probe/download', ko_door_probe.download_probe)
+  app.router.add_get('/api/ko/door/probe/history', ko_door_probe.probe_history)
+  app.router.add_post('/api/ko/door/probe/capture', ko_door_probe.physical_capture)
   app.router.add_post("/api/ko/door/{action}", door_command)

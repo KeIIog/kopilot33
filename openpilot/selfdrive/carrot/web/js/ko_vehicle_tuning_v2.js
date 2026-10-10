@@ -55,16 +55,29 @@
   const css=document.createElement('style');css.textContent='[data-settings-extension-panel="ko-door-control"]{display:none!important}';document.head.appendChild(css);
   ext.register({id:'ko-auto-tuning-v24',matches:c=>c.group==='VEH_AUX'&&!c.detailMode&&!!c.root,
     mount(c){const el=mountTune(c.root,c.lifecycle);return{root:el,sync(){},destroy(){el.remove();}};}});
-  ext.register({id:'ko-door-test-v24',matches:c=>c.group==='VEH_AUX'&&!c.detailMode&&!!c.root,
-    mount(c){const v=card(c.root,'ko-door-test-v24','도어락 송신 실험 + 실제 상태 검증',
-      'P단·정지·시동 ON·보조제어 OFF 조건에서만 미확정 0x3FF 명령을 1회 실험합니다. 충전 케이블 분리, 차량 주변 안전 확인. Panda Safety 우회 없음. 예상과 다른 차량 반응 가능.',
-      `<div class="ui-action-grid"><button type="button" class="smallBtn" data-role="state">현재 잠금 상태</button><button type="button" class="smallBtn" data-role="lock">실험 잠금 송신</button><button type="button" class="smallBtn" data-role="unlock">실험 잠금 해제 송신</button><button type="button" class="smallBtn" data-role="logs">전체 CAN 실험 로그 다운로드</button></div><p class="muted mt-sm" style="white-space:pre-wrap" data-role="out">조회 대기</p>`);
+  ext.register({id:'ko-door-physical-v252',matches:c=>c.group==='VEH_AUX'&&!c.detailMode&&!!c.root,
+    mount(c){const v=card(c.root,'ko-door-physical-v252','도어 CAN 물리버튼 비교 녹화 (송신 없음)',
+      '3FF 제어 실험은 중단했습니다. 시작 버튼을 누른 뒤 12초 동안 실물 스마트키로 잠금 또는 잠금해제를 한 번 누르세요. 4A2/587과 진단 후보는 수신만 기록합니다.',
+      `<div class="ui-action-grid"><button type="button" class="smallBtn" data-role="state">현재 잠금 상태</button><button type="button" class="smallBtn" data-role="lock">물리 잠금 기록 시작 (12초)</button><button type="button" class="smallBtn" data-role="unlock">물리 잠금해제 기록 시작 (12초)</button><button type="button" class="smallBtn" data-role="logs">전체 CAN 압축 로그</button><button type="button" class="smallBtn" data-role="status">후보별 수신 결과</button></div><p class="muted mt-sm" style="white-space:pre-wrap" data-role="out">실차 연결이 필요합니다. 이 페이지에서 차량으로 명령을 전송하지 않습니다.</p>`);
       const out=v.c.querySelector('[data-role=out]');let busy=false;
-      async function wrap(cb){if(busy)return;busy=true;try{await cb();}catch(e){out.textContent='실험 실패: '+errorText(e);}finally{busy=false;}}
+      async function wrap(fn){if(busy)return;busy=true;try{await fn();}catch(e){out.textContent='실패: '+errorText(e);}finally{busy=false;}}
       async function state(){await wrap(async()=>{const d=await api('/api/ko/door/state');out.textContent='잠금 상태: '+JSON.stringify(d.door_state,null,2);});}
-      async function trial(action){if(!(await ask(`⚠️ 미확인 0x3FF CAN 명령 실험입니다. 충전선 분리, P단, 정지, 주변 안전 확인 후 ${action==='lock'?'잠금':'해제'}를 1회 시도하시겠습니까? 차량 잠금이 아닌 다른 기능이 반응할 수 있습니다.`)))return;
-        await wrap(async()=>{const res=await fetch('/api/ko/door/'+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({experimental:true,confirmation:'ONE_SHOT_PARKED_3FF'})});let d=await res.json();out.textContent=`${res.status} ${d.ok?'차량 상태 전환 확인':'잠금 구동 미확인'}\nCAN TX: ${JSON.stringify(d.panda_tx||{})}\n이전: ${JSON.stringify(d.door_state_before||{})}\n이후: ${JSON.stringify(d.door_state_after||{})}\n오류: ${d.error||''}\n실험 로그 저장됨`;});}
-      const cb={state:()=>void state(),lock:()=>void trial('lock'),unlock:()=>void trial('unlock'),logs:()=>{window.location.href='/api/ko/door/probe/download';}};
+      async function capture(action){if(!(await ask(`이 기능은 차량 명령을 전송하지 않습니다. 실차에 comma 4를 연결하고, 기록을 시작한 후 12초 안에 스마트키에서 ${action==='lock'?'잠금':'잠금 해제'}를 직접 누르겠습니까?`)))return;
+        await wrap(async()=>{out.textContent='12초 동안 수신 기록 중... 지금 물리 스마트키 버튼을 한 번 누르세요.';
+          const res=await fetch('/api/ko/door/probe/capture',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,confirmation:'PHYSICAL_BUTTON_CAPTURE_NO_TX'})});
+          const raw=await res.text();let d;try{d=JSON.parse(raw);}catch{throw Error('HTTP '+res.status+': '+raw.slice(0,120));}
+          out.textContent=(d.ok?'수신 완료':'실차 CAN 수신 실패')+' · 총 '+(d.frames_written||0)+'프레임 · 잘림 '+(d.truncated?'YES':'NO')+' · 차량송신 '+d.can_transmitted+'\n잠금 지표: '+JSON.stringify(d.inferred_door_state||{})+'\n후보 CAN 수신: '+JSON.stringify(d.candidate_counts||{},null,2)+'\n후보 페이로드 변화: '+JSON.stringify(d.candidate_payload_changes||{},null,2)+'\n오류: '+(d.capture_error||'없음')+'\n저장 파일: '+(d.file||'없음');
+        });}
+      async function status(){await wrap(async()=>{let d=await api('/api/ko/door/probe/status');out.textContent=JSON.stringify(d.latest,null,2);});}
+      async function logs(){await wrap(async()=>{const r=await fetch('/api/ko/door/probe/download',{cache:'no-store'});
+        if(!r.ok){throw Error('로그 다운로드 HTTP '+r.status+': '+(await r.text()).slice(0,200));}
+        const disposition=r.headers.get('Content-Disposition')||'';
+        const file=(disposition.match(/filename=\"?([^\";]+)\"?/i)||[])[1]||'door_probe_latest.jsonl.gz';
+        const blob=await r.blob();const href=URL.createObjectURL(blob);
+        const a=document.createElement('a');a.href=href;a.download=file;document.body.appendChild(a);a.click();a.remove();
+        setTimeout(()=>URL.revokeObjectURL(href),2500);
+        out.textContent='압축 로그 다운로드 요청: '+file+' ('+blob.size+' bytes)';});}
+      const cb={state:()=>void state(),lock:()=>void capture('lock'),unlock:()=>void capture('unlock'),logs:()=>void logs(),status:()=>void status()};
       for(const [k,fn] of Object.entries(cb)){const el=v.c.querySelector(`[data-role=${k}]`);el.addEventListener('click',fn);c.lifecycle.addCleanup(()=>el.removeEventListener('click',fn));}
       return{root:v.sec,sync(){},destroy(){v.sec.remove();}};
     }});
