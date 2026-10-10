@@ -233,7 +233,100 @@ async def ko_door_state(request: web.Request) -> web.Response:
   return web.json_response({"ok": True, "door_state": state,
                             "door_actuation_available": False, "can_transmitted": False})
 
+# KO_DOOR_EXPERIMENT_V24: explicit, supervised, stationary test of existing 0x3FF hypothesis.
+# This is NOT a validated Hyundai lock/unlock protocol. Panda Safety is unchanged.
+_DOOR_EXPERIMENT_LAST_MONO = 0.0
+_DOOR_EXPERIMENT_LOG = Path('/data/ko/door_experiments_v24.jsonl')
+
+
+def _door_test_audit(report: dict) -> None:
+  _DOOR_EXPERIMENT_LOG.parent.mkdir(parents=True, exist_ok=True)
+  with _DOOR_EXPERIMENT_LOG.open('a', encoding='utf-8') as f:
+    f.write(json.dumps({'ts': time.time(), **report}, ensure_ascii=False, default=str) + '\n')
+
+
+async def _run_door_experiment(action: str) -> web.Response:
+  global _DOOR_EXPERIMENT_LAST_MONO
+  params = Params()
+  live = await asyncio.to_thread(_live_state)
+  blocked=[]
+  if not params.get_bool('KoDoorControlEnabled'):
+    blocked.append('KoDoorControlEnabled_off')
+  if not live.get('ignition'): blocked.append('ignition_required')
+  if not live.get('park'): blocked.append('P_gear_required')
+  if abs(live.get('v_ego',100))>0.05: blocked.append('vehicle_must_be_stopped')
+  if not live.get('can_valid'): blocked.append('fresh_valid_CAN_required')
+  if live.get('engaged') or live.get('panda_controls_allowed'): blocked.append('driving_assist_must_be_off')
+  if not live.get('door_safety_enabled'): blocked.append('existing_panda_door_safety_not_enabled')
+  if time.monotonic()-_DOOR_EXPERIMENT_LAST_MONO < 20: blocked.append('20_second_cooldown')
+  if blocked:
+    return web.json_response({'ok':False,'error':'door_experiment_blocked','blocked':blocked,'live':live,
+                              'transmitted':False},status=409)
+  try:
+    before=await asyncio.to_thread(_read_ko_door_lock_state)
+  except Exception as exc:
+    before={'state':'unknown','error':str(exc)}
+  wanted=(action=='lock')
+  if before.get('corroborated') and before.get('locked')==wanted:
+    return web.json_response({'ok':False,'error':'door_already_in_requested_state',
+                              'door_state_before':before,'transmitted':False},status=409)
+  async with _DOOR_COMMAND_LOCK:
+    if time.monotonic()-_DOOR_EXPERIMENT_LAST_MONO < 20:
+      return web.json_response({'ok':False,'error':'20_second_cooldown','transmitted':False},status=429)
+    _DOOR_EXPERIMENT_LAST_MONO=time.monotonic()
+    counter=_next_counter()
+    frames=_build_frames(action,counter)  # Existing 3FF variant, existing bus 0; NO Safety relaxation.
+    rx=messaging.sub_sock('can',conflate=False,timeout=70)
+    payloads={data for _,data,_,_ in frames}
+    try:
+      send=_get_send_sock()  # Preserve existing KO door IPC hotfix.
+      for addr,data,bus,delay_ms in frames:
+        if delay_ms: await asyncio.sleep(delay_ms/1000)
+        send.send(can_list_to_can_capnp([(addr,data,bus)],msgtype='sendcan',valid=True))
+      tx=await asyncio.to_thread(_collect_tx_returns,rx,payloads)
+      _write_counter(counter)
+    except Exception as exc:
+      failure={'action':action,'error':'send_failed: '+str(exc),'transmitted':False,
+               'door_state_before':before,'live':live}
+      _door_test_audit(failure)
+      return web.json_response({'ok':False,**failure},status=500)
+    await asyncio.sleep(0.5)
+    try:
+      after=await asyncio.to_thread(_read_ko_door_lock_state)
+    except Exception as exc:
+      after={'state':'unknown','error':str(exc)}
+    confirmed=(tx['status']=='returned' and before.get('corroborated') is True and
+               after.get('corroborated') is True and before.get('locked') is not wanted and
+               after.get('locked') is wanted)
+    result={'ok':bool(confirmed),'action':action,'experimental':True,
+            'protocol':'UNVERIFIED_0x3FF','transmitted':tx['status']=='returned',
+            'actuator_state_transition_confirmed':bool(confirmed),
+            'error':None if confirmed else 'state_change_not_verified',
+            'counter':counter,'payloads':[data.hex() for _,data,_,_ in frames],
+            'panda_tx':tx,'door_state_before':before,'door_state_after':after,
+            'live':live}
+    _door_test_audit(result)
+    return web.json_response(result,status=200 if confirmed else 409)
+
+
+async def _door_experiment_log(request: web.Request) -> web.StreamResponse:
+  if not _DOOR_EXPERIMENT_LOG.exists():
+    return web.json_response({'ok':False,'error':'no tests recorded yet'},status=404)
+  return web.FileResponse(_DOOR_EXPERIMENT_LOG,headers={'Content-Disposition':'attachment; filename="door_experiments_v24.jsonl"'})
+
+
 async def door_command(request: web.Request) -> web.Response:
+  # KO_DOOR_EXPERIMENT_V24: off-by-default opt-in, do not bypass Panda Safety.
+  try:
+    _ko_exp_body = await request.json()
+  except Exception:
+    _ko_exp_body = {}
+  if (isinstance(_ko_exp_body, dict) and _ko_exp_body.get('experimental') is True and
+      _ko_exp_body.get('confirmation') == 'ONE_SHOT_PARKED_3FF'):
+    _ko_act = request.match_info.get('action', '').strip().lower()
+    if _ko_act not in ('lock','unlock'):
+      return web.json_response({'ok':False,'error':'invalid action'},status=400)
+    return await _run_door_experiment(_ko_act)
   # KO_DOOR_STATUS_V2: block unverified 0x3FF actuation; retain original TX code for later validation.
   action = request.match_info.get("action", "").strip().lower()
   if action not in ("lock", "unlock"):
@@ -320,4 +413,5 @@ def register(app: web.Application) -> None:
   app.router.add_get("/api/ko/vehicle/status", status)
   app.router.add_post("/api/ko/pet_mode", pet_mode)
   app.router.add_get("/api/ko/door/state", ko_door_state)
+  app.router.add_get("/api/ko/door/experiment_log", _door_experiment_log)
   app.router.add_post("/api/ko/door/{action}", door_command)
