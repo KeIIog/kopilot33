@@ -58,13 +58,13 @@
   ext.register({id:'ko-door-test-v24',matches:c=>c.group==='VEH_AUX'&&!c.detailMode&&!!c.root,
     mount(c){const v=card(c.root,'ko-door-test-v24','도어락 송신 실험 + 실제 상태 검증',
       'P단·정지·시동 ON·보조제어 OFF 조건에서만 미확정 0x3FF 명령을 1회 실험합니다. 충전 케이블 분리, 차량 주변 안전 확인. Panda Safety 우회 없음. 예상과 다른 차량 반응 가능.',
-      `<div class="ui-action-grid"><button type="button" class="smallBtn" data-role="state">현재 잠금 상태</button><button type="button" class="smallBtn" data-role="lock">실험 잠금 송신</button><button type="button" class="smallBtn" data-role="unlock">실험 잠금 해제 송신</button><button type="button" class="smallBtn" data-role="logs">실험 로그 다운로드</button></div><p class="muted mt-sm" style="white-space:pre-wrap" data-role="out">조회 대기</p>`);
+      `<div class="ui-action-grid"><button type="button" class="smallBtn" data-role="state">현재 잠금 상태</button><button type="button" class="smallBtn" data-role="lock">실험 잠금 송신</button><button type="button" class="smallBtn" data-role="unlock">실험 잠금 해제 송신</button><button type="button" class="smallBtn" data-role="logs">전체 CAN 실험 로그 다운로드</button></div><p class="muted mt-sm" style="white-space:pre-wrap" data-role="out">조회 대기</p>`);
       const out=v.c.querySelector('[data-role=out]');let busy=false;
       async function wrap(cb){if(busy)return;busy=true;try{await cb();}catch(e){out.textContent='실험 실패: '+errorText(e);}finally{busy=false;}}
       async function state(){await wrap(async()=>{const d=await api('/api/ko/door/state');out.textContent='잠금 상태: '+JSON.stringify(d.door_state,null,2);});}
       async function trial(action){if(!(await ask(`⚠️ 미확인 0x3FF CAN 명령 실험입니다. 충전선 분리, P단, 정지, 주변 안전 확인 후 ${action==='lock'?'잠금':'해제'}를 1회 시도하시겠습니까? 차량 잠금이 아닌 다른 기능이 반응할 수 있습니다.`)))return;
         await wrap(async()=>{const res=await fetch('/api/ko/door/'+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({experimental:true,confirmation:'ONE_SHOT_PARKED_3FF'})});let d=await res.json();out.textContent=`${res.status} ${d.ok?'차량 상태 전환 확인':'잠금 구동 미확인'}\nCAN TX: ${JSON.stringify(d.panda_tx||{})}\n이전: ${JSON.stringify(d.door_state_before||{})}\n이후: ${JSON.stringify(d.door_state_after||{})}\n오류: ${d.error||''}\n실험 로그 저장됨`;});}
-      const cb={state:()=>void state(),lock:()=>void trial('lock'),unlock:()=>void trial('unlock'),logs:()=>{window.location.href='/api/ko/door/experiment_log';}};
+      const cb={state:()=>void state(),lock:()=>void trial('lock'),unlock:()=>void trial('unlock'),logs:()=>{window.location.href='/api/ko/door/probe/download';}};
       for(const [k,fn] of Object.entries(cb)){const el=v.c.querySelector(`[data-role=${k}]`);el.addEventListener('click',fn);c.lifecycle.addCleanup(()=>el.removeEventListener('click',fn));}
       return{root:v.sec,sync(){},destroy(){v.sec.remove();}};
     }});

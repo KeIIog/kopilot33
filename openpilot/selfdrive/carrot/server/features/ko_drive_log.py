@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from . import ko_log_retention  # KO_ROLLING_100MB_V25
 from aiohttp import web
 from openpilot.cereal import messaging
 from openpilot.common.params import Params
@@ -140,47 +141,86 @@ def _latest_log() -> Path | None:
 
 
 def _logger_worker(path: Path, started_mono: float) -> None:
+  """Write bounded 8MiB segments; archive completed segments before eviction."""
   sm = messaging.SubMaster(SERVICES)
   interval = 1.0 / SAMPLE_HZ
   next_sample = time.monotonic()
   samples = 0
   last_params: dict[str, Any] | None = None
-
+  part = 0
+  f = None
   try:
-    with path.open("a", encoding="utf-8", buffering=1) as f:
-      while not _stop_event.is_set():
-        sm.update(100)
-        now = time.monotonic()
-        if now < next_sample:
-          continue
-        next_sample = now + interval
-
-        row = _sample(sm, started_mono)
-        if samples % int(SAMPLE_HZ) == 0:
-          params = _params_snapshot()
-          if params != last_params:
-            row["tuningParams"] = params
-            last_params = params
-
-        line = json.dumps(row, ensure_ascii=False, separators=(",", ":"), default=str) + "\n"
-        with _file_lock:
-          f.write(line)
+    f = path.open("a", encoding="utf-8", buffering=1)
+    while not _stop_event.is_set():
+      sm.update(100)
+      now = time.monotonic()
+      if now < next_sample:
+        continue
+      next_sample = now + interval
+      row = _sample(sm, started_mono)
+      if samples % int(SAMPLE_HZ) == 0:
+        params = _params_snapshot()
+        if params != last_params:
+          row["tuningParams"] = params
+          last_params = params
+      line = json.dumps(row, ensure_ascii=False, separators=(",", ":"), default=str) + "\n"
+      with _file_lock:
+        if f.tell() + len(line.encode('utf-8')) > ko_log_retention.SEGMENT_BYTES:
           f.flush()
-
-        samples += 1
-        with _state_lock:
-          _state["samples"] = samples
+          f.close()
+          f = None
+          ko_log_retention.archive_file(path)
+          quota = ko_log_retention.enforce(LOG_DIR, current=None)
+          if not quota['within_limit'] or quota['error']:
+            raise RuntimeError('log retention failed before deletion: '+str(quota['error']))
+          part += 1
+          next_path = LOG_DIR / f"{path.stem.rsplit('_part', 1)[0]}_part{part:04d}.jsonl"
+          # Preserve uniqueness if restart resumes within the same second.
+          if next_path.exists():
+            next_path = LOG_DIR / f"KOPilot_drive_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}_part{part:04d}.jsonl"
+          path = next_path
+          meta = {'type': 'meta', 'schema': 'kopilot-drive-log-v1',
+                  'sample_hz': SAMPLE_HZ, 'services': SERVICES,
+                  'created_at': datetime.now().isoformat(timespec='seconds'),
+                  'params': _params_snapshot()}
+          f = path.open('x', encoding='utf-8', buffering=1)
+          f.write(json.dumps(meta, ensure_ascii=False, separators=(',', ':')) + '\n')
+          with _state_lock:
+            _state['path'] = str(path)
+        f.write(line)
+        f.flush()
+      samples += 1
+      with _state_lock:
+        _state['samples'] = samples
   except Exception as exc:
     with _state_lock:
-      _state["last_error"] = str(exc)
+      _state['last_error'] = str(exc)
   finally:
+    try:
+      if f is not None:
+        with _file_lock:
+          f.flush()
+          f.close()
+      if path.is_file():
+        ko_log_retention.archive_file(path)
+      quota = ko_log_retention.enforce(LOG_DIR, current=None)
+      if quota['error'] or not quota['within_limit']:
+        with _state_lock:
+          _state['last_error'] = 'retention: ' + str(quota['error'] or quota)
+    except Exception as exc:
+      with _state_lock:
+        _state['last_error'] = 'archive: ' + str(exc)
     with _state_lock:
-      _state["enabled"] = False
+      _state['enabled'] = False
 
 
 def _start_logging() -> Path:
   global _worker
   LOG_DIR.mkdir(parents=True, exist_ok=True)
+  # Before starting a new session, analyze old segments and enforce quota.
+  quota = ko_log_retention.enforce(LOG_DIR, current=None)
+  if quota['error'] or not quota['within_limit']:
+    raise RuntimeError('cannot safely free log space; analysis has failed: ' + str(quota['error']))
 
   now = datetime.now()
   path = LOG_DIR / f"KOPilot_drive_{now.strftime('%Y%m%d_%H%M%S')}.jsonl"
@@ -221,7 +261,9 @@ def _stop_logging() -> None:
   _stop_event.set()
   worker = _worker
   if worker is not None and worker.is_alive():
-    worker.join(timeout=1.5)
+    worker.join(timeout=30.0)
+    if worker.is_alive():
+      raise RuntimeError('log archive is still running; retry stop')
   _worker = None
   with _state_lock:
     _state["enabled"] = False
@@ -254,6 +296,7 @@ def _status_payload() -> dict[str, Any]:
     "samples": int(state.get("samples") or 0),
     "elapsed_s": elapsed,
     "last_error": str(state.get("last_error") or ""),
+    "retention": ko_log_retention.status(LOG_DIR),
   }
 
 

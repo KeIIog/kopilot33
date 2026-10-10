@@ -18,7 +18,7 @@ from typing import Any
 from aiohttp import web
 from openpilot.cereal import car, messaging
 from openpilot.common.params import Params
-from . import ko_drive_log
+from . import ko_drive_log, ko_log_retention  # KO_ROLLING_100MB_V25
 
 CONFIG_FILE = Path('/data/ko/auto_tune.json')
 REPORT_DIR = Path('/data/ko/auto_tune_reports')
@@ -108,8 +108,7 @@ def analyze_log(path: Path, config: dict[str, bool] | None = None) -> dict[str, 
   conf = config if config is not None else read_config()
   if not path.is_file():
     raise FileNotFoundError('drive log not found')
-  if path.stat().st_size > 100*1024*1024:
-    raise ValueError('log over 100 MB; stop logging and choose shorter session')
+  # Legacy oversized files are streamed once into a durable report before removal.
   steer: list[tuple[float,float,float]] = []
   decel: list[tuple[float,float,float]] = []
   prev = -1.0
@@ -171,7 +170,7 @@ async def status(request: web.Request) -> web.Response:
   log = await asyncio.to_thread(_sync_logging, config)
   return web.json_response({'ok':True,'version':'v2.4','config':config,'mode':'bounded_parked_trial',
                             'automatic_parameter_apply':False,'can_transmitted':False,'log':log,
-                            'active_trial':_read_trial()})
+                            'active_trial':_read_trial(), 'last_retained_analysis':ko_log_retention.latest_analysis().get('source_file'), 'retention':ko_log_retention.status(ko_drive_log.LOG_DIR)})
 
 
 async def configure(request: web.Request) -> web.Response:
@@ -192,7 +191,17 @@ async def analyze(request: web.Request) -> web.Response:
     return web.json_response({'ok':False,'error':'no driving log: enable steering/deceleration first'},status=404)
   try:
     result = await asyncio.to_thread(analyze_log,path)
+    cached = ko_log_retention.latest_analysis().get('analysis')
+    if isinstance(cached, dict):
+      for _axis in ('steering', 'deceleration'):
+        if (result.get(_axis, {}).get('state') != 'analyzed' and
+            cached.get(_axis, {}).get('state') == 'analyzed'):
+          result[_axis] = dict(cached[_axis])
+          result[_axis]['source_file'] = cached.get('source_file')
     report = await asyncio.to_thread(_save_report,result)
+    # Keep analysis alongside retention; original raw log is not required after summary.
+    if path != Path(ko_drive_log._state.get('path') or ''):
+      await asyncio.to_thread(ko_log_retention.archive_file,path)
     result['report_file'] = report.name
   except (OSError,ValueError) as exc:
     return web.json_response({'ok':False,'error':str(exc)},status=400)
@@ -276,6 +285,13 @@ def _trial_proposal() -> dict:
   if latest is None:
     return {'ok':True,'can_apply':False,'reason':'no driving log yet'}
   result=analyze_log(latest)
+  saved = ko_log_retention.latest_analysis().get('analysis')
+  if isinstance(saved, dict):
+    for _axis in ('steering', 'deceleration'):
+      if (result.get(_axis, {}).get('state') != 'analyzed' and
+          saved.get(_axis, {}).get('state') == 'analyzed'):
+        result[_axis] = dict(saved[_axis])
+        result[_axis]['source_file'] = saved.get('source_file')
   params=Params()
   proposed={}
   reasons={}

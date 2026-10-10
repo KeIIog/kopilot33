@@ -245,7 +245,7 @@ def _door_test_audit(report: dict) -> None:
     f.write(json.dumps({'ts': time.time(), **report}, ensure_ascii=False, default=str) + '\n')
 
 
-async def _run_door_experiment(action: str) -> web.Response:
+async def _run_door_experiment_v24(action: str) -> web.Response:
   global _DOOR_EXPERIMENT_LAST_MONO
   params = Params()
   live = await asyncio.to_thread(_live_state)
@@ -313,6 +313,12 @@ async def _door_experiment_log(request: web.Request) -> web.StreamResponse:
   if not _DOOR_EXPERIMENT_LOG.exists():
     return web.json_response({'ok':False,'error':'no tests recorded yet'},status=404)
   return web.FileResponse(_DOOR_EXPERIMENT_LOG,headers={'Content-Disposition':'attachment; filename="door_experiments_v24.jsonl"'})
+
+
+# KO_DOOR_PROBE_V251: independent RX evidence; no additional vehicle commands.
+async def _run_door_experiment(action: str) -> web.Response:
+  from . import ko_door_probe
+  return await ko_door_probe.record_one_experiment(action, _run_door_experiment_v24)
 
 
 async def door_command(request: web.Request) -> web.Response:
@@ -414,4 +420,7 @@ def register(app: web.Application) -> None:
   app.router.add_post("/api/ko/pet_mode", pet_mode)
   app.router.add_get("/api/ko/door/state", ko_door_state)
   app.router.add_get("/api/ko/door/experiment_log", _door_experiment_log)
+  from . import ko_door_probe
+  app.router.add_get('/api/ko/door/probe/status', ko_door_probe.get_probe_status)
+  app.router.add_get('/api/ko/door/probe/download', ko_door_probe.download_probe)
   app.router.add_post("/api/ko/door/{action}", door_command)
