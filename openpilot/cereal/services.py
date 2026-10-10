@@ -47,6 +47,7 @@ _services: dict[str, tuple] = {
   # 16 Hz, most brands 20 Hz, and Volkswagen 25 Hz.
   "liveTracks": (True, 20., None, QueueSize.SMALL, (14., 25.)),
   "sendcan": (True, 100., 139, QueueSize.MEDIUM),
+  "koDoorCanV1": (False, 0., None, QueueSize.SMALL),  # KO_DOOR_IPC_V2 single-publisher bridge
   "logMessage": (True, 0., None, QueueSize.BIG),
   "errorLogMessage": (True, 0., 1, QueueSize.BIG),
   "liveCalibration": (True, 4., 4),

@@ -11,6 +11,7 @@ from aiohttp import web
 from openpilot.cereal import car, messaging
 from openpilot.common.params import Params
 from openpilot.selfdrive.pandad import can_list_to_can_capnp
+from .ko_door_state import infer_lock_state
 
 DOOR_LOG_PATH = Path(os.environ.get("KO_DOOR_CONTROL_LOG", "/data/ko/door_control.jsonl"))
 DOOR_COUNTER_PATH = Path(os.environ.get("KO_DOOR_COUNTER", "/data/ko/door_counter.json"))
@@ -136,7 +137,7 @@ def _build_frames(action: str, counter: int) -> list[tuple[int, bytes, int, int]
 def _get_send_sock():
   global _DOOR_SEND_SOCK
   if _DOOR_SEND_SOCK is None:
-    _DOOR_SEND_SOCK = messaging.pub_sock("sendcan")
+    _DOOR_SEND_SOCK = messaging.pub_sock("koDoorCanV1")  # KO_DOOR_IPC_V2
   return _DOOR_SEND_SOCK
 
 
@@ -161,7 +162,7 @@ def _collect_tx_returns(sock, payloads: set[bytes], timeout_s: float = 0.35) -> 
         returned += 1
       elif src == 192 + DOOR_BUS:
         rejected += 1
-  status = "returned" if returned else ("rejected" if rejected else "unknown")
+  status = "rejected" if rejected else ("returned" if returned else "unknown")  # KO_DOOR_IPC_V2
   return {"status": status, "returned": returned, "rejected": rejected, "raw": raw}
 
 
@@ -184,6 +185,8 @@ async def status(request: web.Request) -> web.Response:
     "door_protocol": DOOR_PROTOCOL,
     "door_address": hex(DOOR_ADDR),
     "door_bus": DOOR_BUS,
+    "door_state_endpoint": "/api/ko/door/state",
+    "door_actuation_available": False,
     "door_counter_last": _read_counter(),
     "live": _live_state(),
   })
@@ -202,7 +205,47 @@ async def pet_mode(request: web.Request) -> web.Response:
   return web.json_response({"ok": True, "enabled": enabled})
 
 
+
+
+def _read_ko_door_lock_state() -> dict:
+  # KO_DOOR_STATUS_V2: READ ONLY. No vehicle CAN transmit or safety changes.
+  samples = []
+  sock = messaging.sub_sock("can", conflate=False, timeout=100)
+  start = time.monotonic()
+  while time.monotonic() - start < 1.2:
+    msg = messaging.recv_one_or_none(sock)
+    now = time.monotonic()
+    if msg is None:
+      time.sleep(0.005)
+      continue
+    for frame in msg.can:
+      if int(frame.src) == 0 and int(frame.address) in (0x411, 0x414):
+        samples.append((now, int(frame.src), int(frame.address), bytes(frame.dat)))
+  return infer_lock_state(samples, time.monotonic())
+
+
+async def ko_door_state(request: web.Request) -> web.Response:
+  try:
+    state = await asyncio.to_thread(_read_ko_door_lock_state)
+  except Exception as exc:
+    return web.json_response({"ok": False, "state": "unknown", "locked": None,
+                              "error": f"door_status_read_failed: {exc}"}, status=503)
+  return web.json_response({"ok": True, "door_state": state,
+                            "door_actuation_available": False, "can_transmitted": False})
+
 async def door_command(request: web.Request) -> web.Response:
+  # KO_DOOR_STATUS_V2: block unverified 0x3FF actuation; retain original TX code for later validation.
+  action = request.match_info.get("action", "").strip().lower()
+  if action not in ("lock", "unlock"):
+    return web.json_response({"ok": False, "error": "action must be lock or unlock"}, status=400)
+  try:
+    lock_status = await asyncio.to_thread(_read_ko_door_lock_state)
+  except Exception:
+    lock_status = {"state": "unknown", "locked": None, "corroborated": False}
+  return web.json_response({"ok": False, "action": action,
+                            "error": "door_actuation_protocol_unverified",
+                            "transmitted": False, "door_actuation_available": False,
+                            "door_state": lock_status}, status=409)
   action = request.match_info.get("action", "").strip().lower()
   if action not in ("lock", "unlock"):
     return web.json_response({"ok": False, "error": "action must be lock or unlock"}, status=400)
@@ -260,7 +303,7 @@ async def door_command(request: web.Request) -> web.Response:
     _write_counter(counter)
     payload_hex = [data.hex() for _, data, _, _ in frames]
     result = {
-      "ok": tx_result["status"] != "rejected",
+      "ok": tx_result["status"] == "returned",
       "action": action,
       "counter": counter,
       "frames": len(frames),
@@ -276,4 +319,5 @@ async def door_command(request: web.Request) -> web.Response:
 def register(app: web.Application) -> None:
   app.router.add_get("/api/ko/vehicle/status", status)
   app.router.add_post("/api/ko/pet_mode", pet_mode)
+  app.router.add_get("/api/ko/door/state", ko_door_state)
   app.router.add_post("/api/ko/door/{action}", door_command)

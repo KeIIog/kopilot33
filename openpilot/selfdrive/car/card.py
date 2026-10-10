@@ -79,6 +79,7 @@ class Car:
     self.sm = messaging.SubMaster(['pandaStates', 'carControl', 'onroadEvents', 'carrotMan', 'longitudinalPlan',
                                    'radarState', 'modelV2', 'drivingModelData', 'customReservedRawData0'])
     self.pm = messaging.PubMaster(['sendcan', 'carState', 'carParams', 'carOutput'])
+    self.ko_door_sock = messaging.sub_sock("koDoorCanV1", conflate=False)  # KO_DOOR_IPC_V2
 
     self.can_rcv_cum_timeout_counter = 0
 
@@ -304,6 +305,19 @@ class Car:
     cs_send.carState.cumLagMs = -self.rk.remaining * 1000.
     self.pm.send('carState', cs_send)
 
+  @staticmethod
+  def _ko_door_payload_valid(payload: bytes) -> bool:
+    if len(payload) != 8 or payload[2] != 0x01 or any(payload[i] != 0 for i in range(4, 8)):
+      return False
+    cmd = payload[1] & 0x0F
+    if not ((cmd == 0 and payload[3] == 0) or (cmd == 4 and payload[3] in (0x05, 0x15))):
+      return False
+    crc = 0xFF
+    for byte in payload[1:]:
+      crc ^= byte
+      for _ in range(8):
+        crc = ((crc << 1) ^ (0x1D if crc & 0x80 else 0)) & 0xFF
+    return payload[0] == (crc ^ 0xFE)
   def controls_update(self, CS: car.CarState, CC: car.CarControl):
     """control update loop, driven by carControl"""
 
@@ -329,6 +343,38 @@ class Car:
       radar_state = self.sm['radarState'] if self.sm.valid['radarState'] and self.sm.alive['radarState'] else None
       self.last_actuators_output, can_sends = self.CI.apply(CC, now_nanos, model_v2, radar_state)
       apply_done_ns = time.monotonic_ns()
+      try:
+        door_request = messaging.recv_one_or_none(self.ko_door_sock)
+      except Exception as exc:
+        cloudlog.warning(f"ko door IPC receive failed: {exc}")
+        door_request = None
+      if door_request is not None:
+        try:
+          pandas = self.sm['pandaStates'] if self.sm.alive['pandaStates'] else []
+          can_send_door = (
+            self.CP.brand == 'hyundai'
+            and self.params.get_bool('KoDoorControlEnabled')
+            and bool(CS.canValid)
+            and CS.gearShifter == car.CarState.GearShifter.park
+            and abs(float(CS.vEgo)) <= 0.1
+            and not bool(CC.enabled or CC.latActive or CC.longActive)
+            and any(bool(p.ignitionCan or p.ignitionLine) and (int(p.safetyParam) & 4096)
+                    for p in pandas)
+            and not any(bool(p.controlsAllowed) for p in pandas)
+          )
+          frames = list(door_request.sendcan)
+          if can_send_door and len(frames) == 1:
+            f = frames[0]
+            dat = bytes(f.dat)
+            if int(f.address) == 0x3FF and int(f.src) == 0 and self._ko_door_payload_valid(dat):
+              can_sends = list(can_sends)
+              can_sends.append((0x3FF, dat, 0))
+            else:
+              cloudlog.warning('ko door IPC: invalid frame rejected')
+          else:
+            cloudlog.warning('ko door IPC: vehicle conditions or frame count rejected')
+        except Exception as exc:
+          cloudlog.warning(f'ko door IPC validation error: {exc}')
       self.pm.send('sendcan', can_list_to_can_capnp(can_sends, msgtype='sendcan', valid=CS.canValid))
       sendcan_done_ns = time.monotonic_ns()
 
