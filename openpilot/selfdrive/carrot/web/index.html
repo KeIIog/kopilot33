@@ -145,6 +145,26 @@
   <link rel="stylesheet" href="/css/responsive.css" />
   <link rel="stylesheet" href="/css/generated/intro.css" />
   <link rel="stylesheet" href="/css/vendor/plyr.css?v=3.7.8" />
+
+<!-- KO_HIDE_LEGACY_DOOR_V255 -->
+<style>
+[data-settings-extension-panel="ko-door-control"],
+[data-settings-extension-panel="ko-door-button-v253"],
+[data-settings-extension-panel="ko-door-physical-v252"] {
+  display: none !important;
+}
+</style>
+
+<!-- KO_DOOR_UNIFIED_HIDE_V260 -->
+<style>
+[data-settings-extension-panel="ko-door-control"],
+[data-settings-extension-panel="ko-door-button-v253"],
+[data-settings-extension-panel="ko-door-physical-v252"],
+[data-settings-extension-panel="ko-door-preview-v254"],
+[data-settings-extension-panel="ko-door-live-buttons-v256"] {
+  display: none !important;
+}
+</style>
 </head>
 
 <body class="notranslate" translate="no">
@@ -959,8 +979,13 @@
   <script src="/js/shared/utils.js"></script>
   <script src="/js/shared/i18n.js"></script>
   <script src="/js/shared/api.js"></script>
-  <script src="/js/generated/settings.js"></script>
-  <script src="/js/ko_vehicle_tuning_v2.js?v=20261010_252"></script>
+  <script src="/js/generated/settings.js?v=door_block_detail_20261031"></script>
+  <script src="/js/ko_vehicle_tuning_v2.js?v=20261101_255"></script>
+  <script src="/js/ko_door_edge_visible_v291.js?v=20261104_291"></script>
+  <script src="/js/ko_door_unified_v260.js?v=20261101_260"></script>
+<script src="/js/ko_door_matrix_v280.js?v=20261103_280"></script>
+  <script src="/js/ko_door_switch_v271.js?v=20261101_271"></script>
+  <script src="/js/ko_door_abtest_v270.js?v=20261101_270"></script>
   <script src="/js/shared/setting_diff.js"></script>
   <script src="/js/shared/activity.js"></script>
   <script src="/js/shared/ui/setting_form.js"></script>

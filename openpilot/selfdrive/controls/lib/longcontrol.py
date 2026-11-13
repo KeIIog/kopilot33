@@ -51,13 +51,10 @@ def long_control_state_trans(CP, active, long_control_state, v_ego,
         long_control_state = LongCtrlState.pid
 
     elif long_control_state in [LongCtrlState.starting, LongCtrlState.pid]:
+      # KO_LONG_STOP_REFACTOR_V1: same direct shouldStop transition as upstream.
+      # Existing radar, brake-pedal, and CAN safety interlocks remain intact.
       if stopping_condition:
-        leadOne = radarState.leadOne
-        fcw_stop = leadOne.status and leadOne.dRel < 4.0
-        if a_ego > stopping_accel or fcw_stop:
-          long_control_state = LongCtrlState.stopping
-        elif long_control_state == LongCtrlState.starting:
-          long_control_state = LongCtrlState.stopping
+        long_control_state = LongCtrlState.stopping
       elif started_condition:
         long_control_state = LongCtrlState.pid
   return long_control_state
@@ -70,6 +67,8 @@ class LongControl:
                              (CP.longitudinalTuning.kiBP, CP.longitudinalTuning.kiV),
                              k_f=CP.longitudinalTuning.kf, rate=1 / DT_CTRL)
     self.last_output_accel = 0.0
+    self._ko_stop_stall_time = 0.0
+    self._ko_stop_last_speed = None
     self.coasting = CruiseCoastingControl()
 
 
@@ -145,25 +144,53 @@ class LongControl:
       self.long_control_state = LongCtrlState.stopping
 
     if self.long_control_state == LongCtrlState.off:
+      self._ko_stop_stall_time = 0.0
+      self._ko_stop_last_speed = None
       self.reset()
       output_accel = 0.
 
     elif self.long_control_state == LongCtrlState.stopping:
       output_accel = self.last_output_accel
-
+      # Preserve StoppingAccel, the existing comfort baseline.
+      stop_target = self.stopping_accel
+      ramp = max(0.0, self.CP.stoppingDecelRate)
       if soft_hold_active:
+        # Keep the existing soft-hold behavior; do not weaken an existing hold.
         output_accel = self.CP.stopAccel
-      # Restore the original one-way ramp. Do not unwind stronger braking.
-      if output_accel > self.stopping_accel:
+        self._ko_stop_stall_time = 0.0
+        self._ko_stop_last_speed = None
+      else:
+        speed = float(CS.vEgo)
+        decel = float(CS.aEgo)
+        slow_rolling = (math.isfinite(speed) and math.isfinite(decel)
+                        and 0.12 <= speed <= 1.0 and decel > -0.12
+                        and not CS.cruiseState.standstill and should_stop)
+        not_reducing = (self._ko_stop_last_speed is not None
+                        and speed >= self._ko_stop_last_speed - 0.004)
+        if slow_rolling and not_reducing:
+          self._ko_stop_stall_time = min(1.0, self._ko_stop_stall_time + DT_CTRL)
+        else:
+          self._ko_stop_stall_time = max(0.0, self._ko_stop_stall_time - 2.0 * DT_CTRL)
+        self._ko_stop_last_speed = speed if math.isfinite(speed) else None
+        if self._ko_stop_stall_time >= 0.40 or CS.cruiseState.standstill:
+          # Vehicle-specified stationary hold target, only after stop evidence.
+          stop_target = min(stop_target, self.CP.stopAccel)
+          ramp = max(ramp, 1.0)
+      # Keep one-way, bounded and jerk-ramped braking. Never force a raw CAN value.
+      if output_accel > stop_target:
         output_accel = min(output_accel, 0.0)
-        output_accel -= self.CP.stoppingDecelRate * DT_CTRL
+        output_accel -= ramp * DT_CTRL
       self.reset()
 
     elif self.long_control_state == LongCtrlState.starting:
+      self._ko_stop_stall_time = 0.0
+      self._ko_stop_last_speed = None
       output_accel = self.CP.startAccel
       self.reset()
 
     else:  # LongCtrlState.pid
+      self._ko_stop_stall_time = 0.0
+      self._ko_stop_last_speed = None
       target = getattr(long_plan, 'cruiseCoastingTarget', 0.0)
       percent = getattr(long_plan, 'cruiseCoastingPercent', 0)
       relief = 0.0

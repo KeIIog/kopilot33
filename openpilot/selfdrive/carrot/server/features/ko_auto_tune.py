@@ -104,6 +104,59 @@ def _axis(samples: list[tuple[float, float, float]], minimum: int, unit: str) ->
   }
 
 
+# KO_GAP_TUNE_STATE_REPORT_20261031
+_TUNE_PARAM_KEYS = ('SteerActuatorDelay','LongActuatorDelay','TFollowGap1','TFollowGap2',
+                    'TFollowGap3','TFollowGap4','SpeedTFFactor','TFollowDecelBoost','StopDistanceCarrot')
+
+def _ko_current_tuning_params():
+  p=Params()
+  result={}
+  for key in _TUNE_PARAM_KEYS:
+    try: result[key]=p.get_int(key)
+    except Exception: result[key]=None
+  return result
+
+def _ko_following_analysis(path):
+  import gzip
+  from statistics import median
+  opened=gzip.open if path.suffix=='.gz' else open
+  rows=[]
+  total=active_count=lead_count=0
+  with opened(path,'rt',encoding='utf-8') as f:
+    for line in f:
+      try: sample=json.loads(line)
+      except (ValueError,TypeError): continue
+      if sample.get('type')!='sample': continue
+      total+=1
+      if not all(sample.get(k+'_valid') for k in ('selfdriveState','carState','radarState','longitudinalPlan')):continue
+      if not (sample.get('selfdriveState') or {}).get('active'):continue
+      active_count+=1
+      cs=sample.get('carState') or {}
+      lp=sample.get('longitudinalPlan') or {}
+      rd=sample.get('radarState') or {}
+      lead=rd.get('leadOne') or {}
+      if not (lead.get('status') and lp.get('hasLead')):continue
+      lead_count+=1
+      speed=_number(cs.get('vEgo'))
+      dist=_number(lead.get('dRel'))
+      desired=_number(lp.get('desiredDistance'))
+      tf=_number(lp.get('tFollow'))
+      if any(x is None for x in (speed,dist,desired,tf)):continue
+      if not (3.0<=speed<=45.0 and 0<dist<200.0 and desired>0 and 0.3<=tf<=5.0):continue
+      rows.append((dist-desired,tf,dist/speed,dist,desired))
+  if len(rows)<50:
+    return {'state':'insufficient_lead_following','total_samples':total,
+            'active_samples':active_count,'lead_samples':lead_count,
+            'qualified_samples':len(rows),'required_samples':50,
+            'parameter_changed':False,'note':'이번 기록에 유효한 앞차 추종 데이터가 부족합니다.'}
+  return {'state':'observed_read_only','qualified_samples':len(rows),
+          'median_distance_error_m':round(median(r[0] for r in rows),3),
+          'median_requested_t_follow_s':round(median(r[1] for r in rows),3),
+          'median_measured_headway_s':round(median(r[2] for r in rows),3),
+          'median_lead_distance_m':round(median(r[3] for r in rows),3),
+          'median_desired_distance_m':round(median(r[4] for r in rows),3),
+          'parameter_changed':False,'note':'관측 결과이며 조향/제동/차간거리 자동 gain 변경은 하지 않습니다.'}
+
 def analyze_log(path: Path, config: dict[str, bool] | None = None) -> dict[str, Any]:
   conf = config if config is not None else read_config()
   if not path.is_file():
@@ -155,6 +208,9 @@ def analyze_log(path: Path, config: dict[str, bool] | None = None) -> dict[str, 
     'deceleration': _axis(decel,50,'m/s^2') if conf.get('deceleration') else {'state':'disabled'},
     'safety': 'DO NOT automatically apply steering/brake gain changes from these estimates',
   }
+  result["following"] = _ko_following_analysis(path)
+  result["current_params"] = _ko_current_tuning_params()
+  result["tuning_applied_automatically"] = False
   return result
 
 
@@ -170,7 +226,7 @@ async def status(request: web.Request) -> web.Response:
   log = await asyncio.to_thread(_sync_logging, config)
   return web.json_response({'ok':True,'version':'v2.4','config':config,'mode':'bounded_parked_trial',
                             'automatic_parameter_apply':False,'can_transmitted':False,'log':log,
-                            'active_trial':_read_trial(), 'last_retained_analysis':ko_log_retention.latest_analysis().get('source_file'), 'retention':ko_log_retention.status(ko_drive_log.LOG_DIR)})
+                            'current_params':_ko_current_tuning_params(), 'active_trial':_read_trial(), 'last_retained_analysis':ko_log_retention.latest_analysis().get('source_file'), 'retention':ko_log_retention.status(ko_drive_log.LOG_DIR)})
 
 
 async def configure(request: web.Request) -> web.Response:

@@ -43,6 +43,15 @@ _PARAM_KEYS_INT = (
   "EnableRadarTracks",
   "EnableCornerRadar",
   "RadarTrackFlip",
+  "SteerActuatorDelay",
+  "LongActuatorDelay",
+  "TFollowGap1",
+  "TFollowGap2",
+  "TFollowGap3",
+  "TFollowGap4",
+  "SpeedTFFactor",
+  "TFollowDecelBoost",
+  "StopDistanceCarrot",
 )
 
 _state_lock = threading.Lock()

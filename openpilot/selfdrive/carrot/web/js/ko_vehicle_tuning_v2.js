@@ -22,7 +22,7 @@
   function errorText(e){return e?.message||String(e);}
   function mountTune(root,lifecycle){
     const v=card(root,'ko-autotune-v24','조향 · 감속 자동튜닝 — 1단계 실측 보정',
-      '10Hz 응답 지연을 식별해 작은 지연값 보정안을 만듭니다. 주행 중 값 변경 없음. P단에서만 1단계 실험 적용·원복 가능. 현대차 고정 Kp/Ki/Kf는 수정하지 않습니다.',
+      '조향/감속은 지연 보정 후보만 만들며 P단에서 수동 적용합니다. 차간거리는 분석만 지원하며 자동 변경하지 않습니다. Kp/Ki/Kf는 자동 변경하지 않습니다.',
       `<div class="setting-profile-row">조향 자동분석 <label><input type="checkbox" data-role="steering"> ON</label></div>
        <div class="setting-profile-row">감속 자동분석 <label><input type="checkbox" data-role="deceleration"> ON</label></div>
        <div class="ui-action-grid"><button class="smallBtn" data-role="analyze">로그 분석</button><button class="smallBtn" data-role="proposal">지연 보정안 계산</button><button class="smallBtn" data-role="report">결과 다운로드</button></div>
@@ -30,10 +30,10 @@
        <p class="muted mt-sm" style="white-space:pre-wrap" data-role="out">API 확인 중…</p>`);
     const out=v.c.querySelector('[data-role=out]');let busy=false;
     const st=v.c.querySelector('[data-role=steering]'), de=v.c.querySelector('[data-role=deceleration]');
-    async function run(f){if(busy)return;busy=true;try{await f();}catch(e){out.textContent='실패: '+errorText(e);}finally{busy=false;}}
-    async function load(){await run(async()=>{let s=await api('/api/ko/auto_tune/status');st.checked=!!s.config?.steering;de.checked=!!s.config?.deceleration;out.textContent=`버전 ${s.version} · 실측 기록 ${s.log?.enabled?'ON':'OFF'} (${s.log?.samples||0}개)\n적용 중인 실험: ${s.active_trial?`${s.active_trial.param}: ${s.active_trial.before} → ${s.active_trial.after}`:'없음'}`;});}
+    async function run(f){if(busy)return;busy=true;try{await f();}catch(e){const m=errorText(e);out.textContent=m.startsWith('no qualified proposal:')?'보정안 없음 (오류 아님): '+m.slice('no qualified proposal:'.length)+'\n10Hz 지연 식별 불가 또는 보정 불필요. 값 변경 없음.':'실패: '+m;}finally{busy=false;}}
+    async function load(){await run(async()=>{let s=await api('/api/ko/auto_tune/status');st.checked=!!s.config?.steering;de.checked=!!s.config?.deceleration;out.textContent=`버전 ${s.version} · 실측 기록 ${s.log?.enabled?'ON':'OFF'} (${s.log?.samples||0}개)\n자동 튜닝값 적용: OFF (설계상 수동 1단계)\n현재 실제 Params: ${JSON.stringify(s.current_params||{})}\n적용 중인 실험: ${s.active_trial?`${s.active_trial.param}: ${s.active_trial.before} → ${s.active_trial.after}`:'없음'}`;});}
     function on(k,el){return ()=>run(async()=>{let d=await api('/api/ko/auto_tune/config',{[k]:el.checked});out.textContent=`${k}=${el.checked?'ON':'OFF'} · 로그 ${d.log?.enabled?'ON':'OFF'}`;});}
-    async function analyze(){await run(async()=>{let d=await api('/api/ko/auto_tune/analyze',{});out.textContent=`조향: ${JSON.stringify(d.steering)}\n감속: ${JSON.stringify(d.deceleration)}\n보고서: ${d.report_file}`;});}
+    async function analyze(){await run(async()=>{let d=await api('/api/ko/auto_tune/analyze',{});out.textContent=`조향: ${JSON.stringify(d.steering)}\n감속: ${JSON.stringify(d.deceleration)}\n차간거리: ${JSON.stringify(d.following)}\n현재 Params: ${JSON.stringify(d.current_params)}\n자동 적용: 없음\n보고서: ${d.report_file}`;});}
     async function propose(){await run(async()=>{const d=await api('/api/ko/auto_tune/proposal');out.textContent=`실험 가능: ${d.can_apply?'YES':'NO'}\n보정안: ${JSON.stringify(d.proposals||{},null,2)}\n보류: ${JSON.stringify(d.skipped||d.reason||{},null,2)}\n${d.note||''}`;});}
     async function apply(axis){if(!(await ask(`${axis==='steering'?'조향':'감속'} 지연값을 P단에서 1단계 변경합니다. 실험주행 후 문제가 있으면 즉시 기존 설정으로 원복하세요. 계속할까요?`)))return;
       await run(async()=>{let d=await api('/api/ko/auto_tune/apply_trial',{axis,confirmation:'APPLY_ONE_STEP_WHILE_PARKED'});out.textContent=`실험 적용: ${d.trial.param} ${d.trial.before} → ${d.trial.after}\n다음 주행 중 조작하지 말고, 실험 후 P단에서 원복할 수 있습니다.`;});}
@@ -52,7 +52,7 @@
     void load();return v.sec;
   }
   // Hide legacy "Ready" (it only meant Panda allowed TX, not actual door actuation).
-  const css=document.createElement('style');css.textContent='[data-settings-extension-panel="ko-door-control"]{display:none!important}';document.head.appendChild(css);
+  /* KO_DOOR_BUTTONS_VISIBLE_20261031 */
   ext.register({id:'ko-auto-tuning-v24',matches:c=>c.group==='VEH_AUX'&&!c.detailMode&&!!c.root,
     mount(c){const el=mountTune(c.root,c.lifecycle);return{root:el,sync(){},destroy(){el.remove();}};}});
   ext.register({id:'ko-door-physical-v252',matches:c=>c.group==='VEH_AUX'&&!c.detailMode&&!!c.root,
@@ -81,4 +81,150 @@
       for(const [k,fn] of Object.entries(cb)){const el=v.c.querySelector(`[data-role=${k}]`);el.addEventListener('click',fn);c.lifecycle.addCleanup(()=>el.removeEventListener('click',fn));}
       return{root:v.sec,sync(){},destroy(){v.sec.remove();}};
     }});
+})();
+
+/* KO_GAP_TUNE_STATE_REPORT_20261031 */
+
+/* KO_DOOR_PREVIEW_PANEL_V254 */
+(() => {
+  'use strict';
+
+  const ext = window.CarrotSettingsExtensions;
+  if (!ext || typeof ext.register !== 'function') return;
+
+  const style = document.createElement('style');
+  style.textContent =
+    '[data-settings-extension-panel="ko-door-physical-v252"]{display:none!important}';
+  document.head.appendChild(style);
+
+  async function read(url) {
+    const r = await fetch(url, {
+      method: 'GET',
+      cache: 'no-store'
+    });
+    const d = await r.json();
+    if (!r.ok || d?.ok === false)
+      throw Error(d?.error || `HTTP ${r.status}`);
+    return d;
+  }
+
+  ext.register({
+    id: 'ko-door-preview-v254',
+    matches: c =>
+      c.group === 'VEH_AUX' &&
+      !c.detailMode &&
+      !!c.root,
+
+    mount(c) {
+      const section = document.createElement('section');
+      section.className =
+        'setting-section-block ui-stagger-item';
+
+      section.dataset.settingsExtensionPanel =
+        'ko-door-preview-v254';
+
+      const card = document.createElement('div');
+      card.className = 'setting-group-card';
+
+      card.innerHTML = `
+        <div class="setting-profile-row">
+          <div>
+            <strong>KO 도어 CAN 후보 확인</strong>
+            <p class="muted mt-sm">
+              읽기 전용 미리보기입니다.
+              실제 도어 잠금·해제 명령을 송신하지 않습니다.
+            </p>
+          </div>
+        </div>
+        <div class="ui-action-grid">
+          <button class="smallBtn" data-role="lock">
+            잠금 후보 확인
+          </button>
+          <button class="smallBtn" data-role="unlock">
+            잠금해제 후보 확인
+          </button>
+          <button class="smallBtn" data-role="state">
+            현재 잠금 상태
+          </button>
+        </div>
+        <p class="muted mt-sm"
+           style="white-space:pre-wrap"
+           data-role="out">
+          대기 중 · CAN 송신 없음
+        </p>
+      `;
+
+      section.appendChild(card);
+      c.root.appendChild(section);
+
+      const out = card.querySelector('[data-role=out]');
+      const buttons = Array.from(
+        card.querySelectorAll('button')
+      );
+
+      let busy = false;
+
+      async function run(fn) {
+        if (busy) return;
+        busy = true;
+        buttons.forEach(b => b.disabled = true);
+
+        try {
+          await fn();
+        } catch (e) {
+          out.textContent =
+            '조회 실패: ' + e.message +
+            '\nCAN 송신 없음';
+        } finally {
+          busy = false;
+          buttons.forEach(b => b.disabled = false);
+        }
+      }
+
+      function candidate(action) {
+        return run(async () => {
+          const d = await read(
+            '/api/ko/door/candidate/' + action
+          );
+          out.textContent =
+            (action === 'lock' ? '잠금' : '잠금해제') +
+            ' 후보 조회 완료\n' +
+            '미리보기 전용 · 차량 CAN 송신 없음\n\n' +
+            JSON.stringify(d, null, 2).slice(0, 5000);
+        });
+      }
+
+      function state() {
+        return run(async () => {
+          const d = await read('/api/ko/door/state');
+          const st = d.door_state || {};
+          out.textContent =
+            '잠금 상태 추정: ' +
+            (st.state || 'unknown') +
+            '\n교차 확인: ' +
+            (st.corroborated === true ? '일치' : '불충분') +
+            '\n차량 CAN 송신 없음';
+        });
+      }
+
+      const actions = [
+        () => candidate('lock'),
+        () => candidate('unlock'),
+        () => state()
+      ];
+
+      buttons.forEach((b, i) => {
+        b.addEventListener('click', actions[i]);
+        c.lifecycle.addCleanup(() =>
+          b.removeEventListener('click', actions[i])
+        );
+      });
+
+      return {
+        root: section,
+        sync() {},
+        destroy() { section.remove(); }
+      };
+    }
+  });
 })();

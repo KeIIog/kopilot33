@@ -366,7 +366,10 @@ class Car:
           if can_send_door and len(frames) == 1:
             f = frames[0]
             dat = bytes(f.dat)
-            if int(f.address) == 0x3FF and int(f.src) == 0 and self._ko_door_payload_valid(dat):
+            # KO_EGMP_DOOR_V2_PREVIEW_NO_TX: 0x4A2 is NEVER authorized here.
+            if int(f.address) == 0x4A2:
+              cloudlog.warning('ko door IPC: blocked unverified E-GMP 0x4A2 (offline preview only)')
+            elif int(f.address) == 0x3FF and int(f.src) == 0 and self._ko_door_payload_valid(dat):
               can_sends = list(can_sends)
               can_sends.append((0x3FF, dat, 0))
             else:

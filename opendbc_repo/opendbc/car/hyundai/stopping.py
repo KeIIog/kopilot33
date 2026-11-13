@@ -142,7 +142,8 @@ class CanfdStopping:
     return StopCommand(0, raw, self.last_value, 0.0)
 
   def _recover(self, speed: float, reason: str):
-    # One timed re-entry per stopping episode. If that fails, retain ordinary
-    # deceleration until stopping is observed instead of periodically releasing hold.
-    self.enter(StopPhase.fallback if self.retried else StopPhase.release, speed, reason)
+    # KO_STOPREQ_CONTINUITY_PARK_V1
+    # Experimental: preserve StopReq during requested stopping.
+    # Existing pedal, CAN, gear and ESC interlocks are unchanged.
+    self.enter(StopPhase.request, speed, "continuous_" + reason)
     self.retried = True
